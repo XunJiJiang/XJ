@@ -98,7 +98,6 @@
     "rollup-plugin-strip-banner": "^3.1.0",
     "rollup-plugin-typescript2": "^0.36.0",
     "source-map-js": "^1.2.0",
-    "tsc": "^2.0.4",
     "tslib": "^2.6.2",
     "typescript": "^5.4.5",
     "typescript-eslint": "^7.11.0",
