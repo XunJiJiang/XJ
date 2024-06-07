@@ -1,0 +1,28 @@
+{
+  "name": "xj",
+  "version": "0.0.1",
+  "description": "A simple framework",
+  "main": "./dist/xj.js",
+  "module": "./dist/xj.esm.js",
+  "types": "./dist/xj.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/xj.esm.js",
+      "require": "./dist/xj.js",
+      "types": "./dist/xj.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "keywords": [],
+  "author": "XunJiJiang",
+  "license": "MIT",
+  "dependencies": {
+    "@xj/utils": "workspace:^",
+    "reflect-metadata": "^0.2.2"
+  }
+}

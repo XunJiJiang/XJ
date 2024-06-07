@@ -1,0 +1,53 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "temp",
+    "rootDir": ".",
+    "sourceMap": false,
+    "module": "esnext",
+    "target": "es2016",
+    "newLine": "LF",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noUnusedLocals": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "removeComments": false,
+    "jsx": "preserve",
+    "lib": ["es2016", "dom"],
+    "types": ["node"],
+    "paths": {
+      "xj": ["packages/xj/src/index.ts"],
+      "@xj/*": ["packages/*/src/index.ts"]
+    },
+
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  },
+  // "files": [
+  //   "packages/xj/src/index.ts",
+  //   "packages/utils/src/index.ts",
+  // ],
+  "include": [
+    "packages/*/types",
+    "packages/*/src",
+    "packages/*/__tests__",
+    "scripts/*",
+    "rollup.*.mjs"
+  ]
+  // "exclude": [
+  //   "node_modules",
+  //   "dist",
+  //   "docs",
+  //   "scripts",
+  //   "examples",
+  //   "tests",
+  //   "temp",
+  //   "packages/**/*.spec.ts",
+  //   "packages/**/*.test.ts",
+  //   "pnpm-workspace.yaml",
+  //   "**/*.js"
+  // ]
+}

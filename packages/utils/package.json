@@ -1,0 +1,24 @@
+{
+  "name": "@xj/utils",
+  "version": "0.0.1",
+  "description": "The utils of the simple framework xj",
+  "main": "./dist/utils.js",
+  "module": "./dist/utils.esm.js",
+  "types": "./dist/utils.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/utils.esm.js",
+      "require": "./dist/utils.js",
+      "types": "./dist/utils.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "keywords": [],
+  "author": "XunJiJiang",
+  "license": "MIT"
+}
