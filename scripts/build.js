@@ -10,8 +10,8 @@ import csl from './csl.js';
 import clean from './clean.js';
 import {
   createConfig,
-  createProductionConfig,
-  createMinifiedConfig,
+  // createProductionConfig,
+  // createMinifiedConfig,
 } from '../rollup.config.mjs';
 
 const require = createRequire(import.meta.url);
@@ -174,9 +174,6 @@ async function rollupBuild(configs) {
     csl.error(`Build failed with error: ${error}`);
     process.exit(1);
   }
-  // finally {
-  //   fs.rmdirSync('temp', { recursive: true });
-  // }
 }
 
 /**
