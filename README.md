@@ -1,6 +1,6 @@
 # XJ
 
-[中文](./README_CN.md) | 英文
+[中文](./README_CN.md) | English
 
 ## How to test your code with examples
 

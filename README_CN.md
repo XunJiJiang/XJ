@@ -1,6 +1,6 @@
 # XJ
 
-中文 | [英文](./README.md)
+中文 | [English](./README.md)
 
 ## 如何使用示例测试你的代码
 
@@ -36,7 +36,6 @@
     "xj": "workspace:^"
   }
 }
-
 ```
 
 **vite.config.js**
