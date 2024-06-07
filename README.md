@@ -2,6 +2,10 @@
 
 [中文](./README_CN.md) | English
 
+## Notice
+
+The build directive depends on the [`tsc`](https://www.typescriptlang.org/docs/handbook/compiler-options.html) directive. If the build fails, please check whether `tsc` is installed globally.
+
 ## How to test your code with examples
 
 Create the following file structure.
@@ -36,7 +40,6 @@ Add the following content to the file.
     "xj": "workspace:^"
   }
 }
-
 ```
 
 **vite.config.js**

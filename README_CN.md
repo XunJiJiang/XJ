@@ -2,6 +2,10 @@
 
 中文 | [English](./README.md)
 
+## 注意
+
+build指令依赖于[`tsc`](https://www.typescriptlang.org/docs/handbook/compiler-options.html)指令，如果构建失败，请检查是否全局安装`tsc`
+
 ## 如何使用示例测试你的代码
 
 创建如下文件结构
