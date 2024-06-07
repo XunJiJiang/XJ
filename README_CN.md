@@ -9,11 +9,11 @@
 ```
 <your workspace root>
 └─example
-		├package.json
-		├vite.config.js
-		└─src
-		   ├─index.html
-		   └─main.js
+    ├package.json
+    ├vite.config.js
+    └─src
+       ├─index.html
+       └─main.js
 ```
 
 文件内添加如下内容

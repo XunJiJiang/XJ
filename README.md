@@ -9,11 +9,11 @@ Create the following file structure.
 ```
 <your workspace root>
 └─example
-		├package.json
-		├vite.config.js
-		└─src
-		   ├─index.html
-		   └─main.js
+    ├package.json
+    ├vite.config.js
+    └─src
+       ├─index.html
+       └─main.js
 ```
 
 Add the following content to the file.
