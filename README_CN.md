@@ -1,10 +1,10 @@
 # XJ
 
-[中文](./README_CN.md) | 英文
+中文 | [英文](./README.md)
 
-## How to test your code with examples
+## 如何使用示例测试你的代码
 
-Create the following file structure.
+创建如下文件结构
 
 ```
 <your workspace root>
@@ -16,7 +16,7 @@ Create the following file structure.
 		   └─main.js
 ```
 
-Add the following content to the file.
+文件内添加如下内容
 
 **package.json**
 
@@ -78,16 +78,16 @@ import XJ from 'xj';
 XJ(document.getElementById('main'));
 ```
 
-Install the package in the **example** directory.
+在**example**目录下安装包
 
 ```shell
 pnpm install
 ```
 
-Now go back to the root directory and run the test server.
+现在回到根目录，运行测试服务器
 
 ```shell
 pnpm run dev:example
 ```
 
-**Now you can have fun (or not) testing your code! **
+**现在你可以愉快的（或不愉快的）测试你的代码了！**
