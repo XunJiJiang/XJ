@@ -1,64 +1,58 @@
 // @ts-check
 import ts from 'typescript';
-import path from 'path';
+import path from 'node:path';
+import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import { execSync } from 'child_process';
-// import fs from 'fs';
+// import fs from 'node:fs';
 import { rollup } from 'rollup';
 import csl from './csl.js';
+import clean from './clean.js';
 import {
   createConfig,
   createProductionConfig,
   createMinifiedConfig,
 } from '../rollup.config.mjs';
 
+const require = createRequire(import.meta.url);
+
 const __dirname = path.resolve();
+const packagesDir = path.resolve(__dirname, 'packages');
+/**
+ *
+ * @param {string} p - package name
+ * @returns
+ */
+const resolve = p => path.resolve(packagesDir, p);
+
+const PACKAGES = ['utils', 'xj'];
+
+clean(['all']);
 
 await buildDts();
 
 await compileTs();
 
-await rollupBuild([
-  createConfig(
-    'utils',
-    'cjs',
-    {
-      file: 'packages/utils/dist/utils.js',
+const rollupConfigs = [];
+
+for (const target of PACKAGES) {
+  rollupConfigs.push(
+    createConfig(target, 'cjs', {
+      file: `dist/${target}/dist/${target}.cjs.js`,
       format: 'cjs',
-    },
-    [],
-    true,
-  ),
-  createConfig(
-    'utils',
-    'esm-bundler',
-    {
-      file: 'packages/utils/dist/utils.esm-bundler.js',
+    }),
+    createConfig(target, 'esm-bundler', {
+      file: `dist/${target}/dist/${target}.esm-bundler.js`,
       format: 'esm',
-    },
-    [],
-    true,
-  ),
-  createConfig(
-    'xj',
-    'cjs',
-    {
-      file: 'packages/xj/dist/xj.cjs.js',
-      format: 'cjs',
-    },
-    [],
-    true,
-  ),
-  createConfig(
-    'xj',
-    'esm-bundler',
-    {
-      file: 'packages/xj/dist/xj.esm-bundler.js',
-      format: 'esm',
-    },
-    [],
-    true,
-  ),
-]);
+    }),
+  );
+}
+
+await rollupBuild(rollupConfigs);
+
+await createPackages(['utils', 'xj']);
+
+csl.success('All builds completed successfully');
 
 async function buildDts() {
   execSync(
@@ -132,6 +126,7 @@ async function compileTs() {
 
 /**
  * 运行单个配置
+ * @param {import('rollup').RollupOptions} config
  */
 async function rollupBuildSingle(config) {
   if (!config.output) {
@@ -167,6 +162,7 @@ async function rollupBuildSingle(config) {
 
 /**
  * 构建
+ * @param {import('rollup').RollupOptions[]} configs
  */
 async function rollupBuild(configs) {
   csl.info('Start building...');
@@ -181,6 +177,64 @@ async function rollupBuild(configs) {
   // finally {
   //   fs.rmdirSync('temp', { recursive: true });
   // }
+}
 
-  csl.success('All builds completed successfully');
+/**
+ *
+ * @param {string} target
+ */
+async function createPackage(target) {
+  const pkg = require(resolve(`${target}/package.json`));
+
+  const packageDir = resolve(target);
+
+  const outputDir = path.resolve(__dirname, 'dist', target);
+
+  pkg.main = `./dist/${target}.cjs.js`;
+  pkg.module = `./dist/${target}.esm-bundler.js`;
+  pkg.types = `./dist/${target}.d.ts`;
+  pkg.files = ['dist', 'README.md', 'LICENSE'];
+  pkg.exports = {
+    '.': {
+      require: pkg.main,
+      import: pkg.module,
+      types: pkg.types,
+    },
+    './package.json': './package.json',
+  };
+
+  fs.writeFileSync(
+    path.resolve(outputDir, 'package.json'),
+    JSON.stringify(pkg, null, 2),
+  );
+
+  csl.info(`Created package.json for ${target}`);
+
+  try {
+    fs.copyFileSync(
+      path.resolve(packageDir, 'README.md'),
+      path.resolve(outputDir, 'README.md'),
+    );
+
+    csl.info(`Copied README.md for ${target}`);
+  } catch (error) {}
+
+  try {
+    fs.copyFileSync(
+      path.resolve(__dirname, 'LICENSE'),
+      path.resolve(outputDir, 'LICENSE'),
+    );
+
+    csl.info(`Copied LICENSE for ${target}`);
+  } catch (error) {}
+}
+
+/**
+ *
+ * @param {string[]} targets
+ */
+async function createPackages(targets) {
+  for (const target of targets) {
+    await createPackage(target);
+  }
 }

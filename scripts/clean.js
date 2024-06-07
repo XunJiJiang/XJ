@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // @ts-check
-import path from 'path';
-import fs from 'fs';
+import path from 'node:path';
+import fs from 'node:fs';
 import csl from './csl.js';
 
 const __dirname = path.resolve();
@@ -12,13 +12,13 @@ const ignoreFiles = ['node_modules', '.git', '.vscode'];
 
 const includes = ['all', 'dist', 'temp', 'node_modules'];
 
-clear(args);
+clean(args);
 
 /**
  *
  * @param {string[]} targets
  */
-function clear(targets) {
+export default function clean(targets) {
   if (targets[0] === 'all' || targets.length === 0) {
     deepRemove(__dirname, 'dist');
     deepRemove(__dirname, 'temp');

@@ -3,7 +3,7 @@
 import esbuild from 'rollup-plugin-esbuild';
 import csl from './scripts/csl.js';
 import { entries } from './scripts/aliases.js';
-import path from 'path';
+import path from 'node:path';
 import { createRequire } from 'node:module';
 import json from '@rollup/plugin-json';
 import alias from '@rollup/plugin-alias';
@@ -19,6 +19,7 @@ import terser from '@rollup/plugin-terser';
  * @typedef { Omit<T, K> & Required<Pick<T, K>> } MarkRequired
  */
 /** @typedef {MarkRequired<import('rollup').OutputOptions, 'file' | 'format'>} OutputOptions */
+
 const require = createRequire(import.meta.url);
 
 const __dirname = path.resolve();

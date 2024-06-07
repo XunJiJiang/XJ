@@ -2,8 +2,7 @@
   "name": "@xj/utils",
   "version": "0.0.1",
   "description": "The utils of the simple framework xj",
-  "main": "./dist/utils.js",
-  "module": "./dist/utils.esm.js",
+  "main": "./src/index.ts",
   "types": "./dist/utils.d.ts",
   "files": [
     "dist",
@@ -12,8 +11,7 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/utils.esm.js",
-      "require": "./dist/utils.js",
+      "import": "./src/index.ts",
       "types": "./dist/utils.d.ts"
     },
     "./package.json": "./package.json"

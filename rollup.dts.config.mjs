@@ -22,10 +22,16 @@ export default targetPackages.map(
   pkg => {
     return {
       input: `./temp/packages/${pkg}/src/index.d.ts`,
-      output: {
-        file: `packages/${pkg}/dist/${pkg}.d.ts`,
-        format: 'es',
-      },
+      output: [
+        {
+          file: `packages/${pkg}/dist/${pkg}.d.ts`,
+          format: 'es',
+        },
+        {
+          file: `dist/${pkg}/dist/${pkg}.d.ts`,
+          format: 'es',
+        },
+      ],
       plugins: [dts(), patchTypes(pkg), ...(pkg === 'xj' ? [copyMts()] : [])],
       onwarn(warning, warn) {
         if (unWarn.includes(warning.code || '')) {

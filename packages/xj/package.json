@@ -2,8 +2,8 @@
   "name": "xj",
   "version": "0.0.1",
   "description": "A simple framework",
-  "main": "./dist/xj.js",
-  "module": "./dist/xj.esm.js",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
   "types": "./dist/xj.d.ts",
   "files": [
     "dist",
@@ -12,8 +12,7 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/xj.esm.js",
-      "require": "./dist/xj.js",
+      "import": "./src/index.ts",
       "types": "./dist/xj.d.ts"
     },
     "./package.json": "./package.json"

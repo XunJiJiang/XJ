@@ -17,7 +17,6 @@ class Greeter {
   }
   greet() {
     const formatString = getFormat(this, 'greeting');
-    console.log('formatString', formatString);
     return formatString.replace('%s', this.greeting);
   }
 }
