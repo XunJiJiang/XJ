@@ -136,8 +136,7 @@ function createConfig(target, format, output, plugins = [], sourcemap = false) {
     // requires a ton of template engines which should be ignored.
     /** @type {ReadonlyArray<string>} */
     let cjsIgnores = [];
-    if (pkg.name === '@xj/utils') {
-    }
+    // if (pkg.name === '@xj/shared') {}
 
     const nodePlugins =
       format === 'cjs' && Object.keys(pkg.devDependencies || {}).length

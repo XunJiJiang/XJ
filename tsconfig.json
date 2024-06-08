@@ -28,7 +28,7 @@
   },
   // "files": [
   //   "packages/xj/src/index.ts",
-  //   "packages/utils/src/index.ts",
+  //   "packages/shared/src/index.ts",
   // ],
   "include": [
     "packages/*/types",
