@@ -11,6 +11,7 @@ import commonJS from '@rollup/plugin-commonjs';
 import polyfillNode from 'rollup-plugin-polyfill-node';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
+import { specifyOutputPath } from './scripts/packages.js';
 
 /** @typedef {'cjs' | 'esm-bundler' | 'global' | 'esm-browser'} PackageFormat */
 /**
@@ -24,6 +25,8 @@ const require = createRequire(import.meta.url);
 
 const __dirname = path.resolve();
 const packagesDir = path.resolve(__dirname, 'packages');
+
+const rootPath = specifyOutputPath('root-dist');
 
 /**
  *
@@ -44,19 +47,19 @@ const unWarn = ['CIRCULAR_DEPENDENCY', 'THIS_IS_UNDEFINED'];
  */
 const outputConfigs = target => ({
   'esm-bundler': {
-    file: resolve(`dist/${target}.esm-bundler.js`),
+    file: `${rootPath(target)}${target}.esm-bundler.js`,
     format: 'esm',
   },
   'esm-browser': {
-    file: resolve(`dist/${target}.esm-browser.js`),
+    file: `${rootPath(target)}${target}.esm-browser.js`,
     format: 'esm',
   },
   cjs: {
-    file: resolve(`dist/${target}.cjs.js`),
+    file: `${rootPath(target)}${target}.cjs.js`,
     format: 'cjs',
   },
   global: {
-    file: resolve(`dist/${target}.global.js`),
+    file: `${rootPath(target)}${target}.global.js`,
     format: 'iife',
   },
 });

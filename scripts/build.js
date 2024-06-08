@@ -3,16 +3,21 @@ import ts from 'typescript';
 import path from 'node:path';
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
-import { execSync } from 'child_process';
+import { execSync } from 'node:child_process';
 // import fs from 'node:fs';
 import { rollup } from 'rollup';
 import csl from './csl.js';
 import clean from './clean.js';
+import { PACKAGES } from './packages.js';
+import { buildDts } from './build-dts.js';
 import {
   createConfig,
   // createProductionConfig,
   // createMinifiedConfig,
 } from '../rollup.config.mjs';
+import { specifyOutputPath } from './packages.js';
+
+const rootPath = specifyOutputPath('root-dist');
 
 const require = createRequire(import.meta.url);
 
@@ -25,8 +30,6 @@ const packagesDir = path.resolve(__dirname, 'packages');
  */
 const resolve = p => path.resolve(packagesDir, p);
 
-const PACKAGES = ['utils', 'xj'];
-
 clean(['all']);
 
 await buildDts();
@@ -38,11 +41,11 @@ const rollupConfigs = [];
 for (const target of PACKAGES) {
   rollupConfigs.push(
     createConfig(target, 'cjs', {
-      file: `dist/${target}/dist/${target}.cjs.js`,
+      file: `${rootPath(target)}${target}.cjs.js`,
       format: 'cjs',
     }),
     createConfig(target, 'esm-bundler', {
-      file: `dist/${target}/dist/${target}.esm-bundler.js`,
+      file: `${rootPath(target)}${target}.esm-bundler.js`,
       format: 'esm',
     }),
   );
@@ -50,15 +53,9 @@ for (const target of PACKAGES) {
 
 await rollupBuild(rollupConfigs);
 
-await createPackages(['utils', 'xj']);
+await createPackages(PACKAGES);
 
-csl.success('All builds completed successfully');
-
-async function buildDts() {
-  execSync(
-    'tsc -p tsconfig.build-browser.json && rollup -c rollup.dts.config.mjs',
-  );
-}
+csl.success('Rollup build completed successfully.');
 
 /**
  * 编译 typescript, 主要是为了编译 reflect-metadata 和实验性装饰器
@@ -120,7 +117,7 @@ async function compileTs() {
     csl.error(`Typescript build process error with code '${exitCode}'.`);
     process.exit(exitCode);
   } else {
-    csl.success('Typescript build completed successfully');
+    csl.success('tsc build completed successfully.');
   }
 }
 
@@ -140,9 +137,9 @@ async function rollupBuildSingle(config) {
 
   if (Array.isArray(config.input)) {
     csl.error(`Multiple inputs are not supported: ${config.input}`);
-    csl.error(`Please use a single input file`);
+    csl.error(`Please use a single input file.`);
     csl.error(
-      `If you want to build multiple files, use multiple rollup.config`,
+      `If you want to build multiple files, use multiple rollup.config.`,
     );
     process.exit(1);
   }
@@ -205,7 +202,7 @@ async function createPackage(target) {
     JSON.stringify(pkg, null, 2),
   );
 
-  csl.info(`Created package.json for ${target}`);
+  csl.info(`Created package.json for ${target}.`);
 
   try {
     fs.copyFileSync(
@@ -213,7 +210,7 @@ async function createPackage(target) {
       path.resolve(outputDir, 'README.md'),
     );
 
-    csl.info(`Copied README.md for ${target}`);
+    csl.info(`Copied README.md for ${target}.`);
   } catch (error) {}
 
   try {
@@ -222,7 +219,7 @@ async function createPackage(target) {
       path.resolve(outputDir, 'LICENSE'),
     );
 
-    csl.info(`Copied LICENSE for ${target}`);
+    csl.info(`Copied LICENSE for ${target}.`);
   } catch (error) {}
 }
 
