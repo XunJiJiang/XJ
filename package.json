@@ -11,9 +11,9 @@
   ],
   "scripts": {
     "build": "node ./scripts/build.js",
-    "build-dts": "tsc -p tsconfig.build-browser.json && rollup -c rollup.dts.config.js",
+    "build-dts": "node ./scripts/build-dts.js --update",
     "lint": "eslint packages",
-    "dev:example": "cd ./example && vite",
+    "dev:example": "node ./scripts/build-dts.js packages-dist --dev:example && cd ./example && vite",
     "prettier:write": "prettier --write packages",
     "prettier:check": "prettier --check packages",
     "clean": "node ./scripts/clean.js",

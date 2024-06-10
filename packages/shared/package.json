@@ -1,9 +1,9 @@
 {
-  "name": "@xj/utils",
+  "name": "@xj/shared",
   "version": "0.0.1",
-  "description": "The utils of the simple framework xj",
+  "description": "The shared of the simple framework xj",
   "main": "./src/index.ts",
-  "types": "./dist/utils.d.ts",
+  "types": "./dist/shared.d.ts",
   "files": [
     "dist",
     "README.md",
@@ -12,7 +12,7 @@
   "exports": {
     ".": {
       "import": "./src/index.ts",
-      "types": "./dist/utils.d.ts"
+      "types": "./dist/shared.d.ts"
     },
     "./package.json": "./package.json"
   },
