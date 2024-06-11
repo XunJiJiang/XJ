@@ -1,5 +1,7 @@
+// ts-check
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 
 /**
  * @typedef {'shared' | 'xj'} Target
@@ -9,9 +11,11 @@ import { fileURLToPath } from 'node:url';
  * @typedef {'packages-dist' | 'root-dist'} OutputPath
  */
 
+const require = createRequire(import.meta.url);
+
 const __dirname = resolve(dirname(fileURLToPath(import.meta.url)), '../');
 
-const PACKAGES = ['shared', 'xj'];
+const PACKAGES = require('./packages.json').packageNames;
 
 const OUTPUT_PATH_MAP = {
   'packages-dist': target => `packages/${target}/dist/`,
