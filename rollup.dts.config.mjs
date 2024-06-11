@@ -2,14 +2,20 @@
 import assert from 'node:assert/strict';
 import { parse } from '@babel/parser';
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { dirname, resolve, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import MagicString from 'magic-string';
 import dts from 'rollup-plugin-dts';
-import csl from './scripts/csl.js';
+// import csl from './scripts/csl.js';
 import { specifyOutputPath } from './scripts/packages.js';
 import { execSync } from 'node:child_process';
 
+const __dirname = resolve(dirname(fileURLToPath(import.meta.url)));
+
 if (!existsSync('temp/packages')) {
-  execSync('tsc -p tsconfig.build-browser.json', { stdio: 'inherit' });
+  execSync(`tsc -p ${join(__dirname, 'tsconfig.build-browser.json')}`, {
+    stdio: 'inherit',
+  });
 }
 
 const rootPath = specifyOutputPath('root-dist');

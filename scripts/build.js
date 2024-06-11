@@ -1,27 +1,24 @@
 // @ts-check
 import ts from 'typescript';
-import path from 'node:path';
-import fs from 'node:fs';
+import path, { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
+import fs from 'node:fs';
 import { execSync } from 'node:child_process';
-// import fs from 'node:fs';
 import { rollup } from 'rollup';
 import csl from './csl.js';
 import clean from './clean.js';
 import { PACKAGES } from './packages.js';
 import { buildDts } from './build-dts.js';
-import {
-  createConfig,
-  // createProductionConfig,
-  // createMinifiedConfig,
-} from '../rollup.config.mjs';
+import { createConfig } from '../rollup.config.mjs';
 import { specifyOutputPath } from './packages.js';
 
 const rootPath = specifyOutputPath('root-dist');
 
 const require = createRequire(import.meta.url);
 
-const __dirname = path.resolve();
+const __dirname = path.resolve(dirname(fileURLToPath(import.meta.url)), '../');
+
 const packagesDir = path.resolve(__dirname, 'packages');
 /**
  *
@@ -34,7 +31,7 @@ clean(['all']);
 
 await buildDts();
 
-await compileTs();
+await tsc();
 
 const rollupConfigs = [];
 
@@ -60,64 +57,16 @@ csl.success('Rollup build completed successfully.');
 /**
  * 编译 typescript, 主要是为了编译 reflect-metadata 和实验性装饰器
  */
-async function compileTs() {
+async function tsc() {
   csl.info('Start building typescript...');
-  // 读取 tsconfig.json 路径
-  const configPath = ts.findConfigFile(
-    path.resolve(__dirname),
-    ts.sys.fileExists,
-    'tsconfig.json',
-  );
 
-  if (!configPath) {
-    throw new Error("Could not find a valid 'tsconfig.json'.");
-  }
-
-  // 解析 tsconfig.json
-  const configFile = ts.readConfigFile(configPath, ts.sys.readFile);
-
-  // 解析config
-  const configParseResult = ts.parseJsonConfigFileContent(
-    configFile.config,
-    ts.sys,
-    path.dirname(configPath),
-  );
-
-  const program = ts.createProgram(
-    configParseResult.fileNames,
-    configParseResult.options,
-  );
-
-  const emitResult = program.emit();
-
-  const allDiagnostics = ts
-    .getPreEmitDiagnostics(program)
-    .concat(emitResult.diagnostics);
-
-  allDiagnostics.forEach(diagnostic => {
-    if (diagnostic.file) {
-      const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(
-        diagnostic.start || 0,
-      );
-      const message = ts.flattenDiagnosticMessageText(
-        diagnostic.messageText,
-        '\n',
-      );
-      csl.error(
-        `${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`,
-      );
-    } else {
-      csl.error(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'));
-    }
-  });
-
-  const exitCode = emitResult.emitSkipped ? 1 : 0;
-
-  if (exitCode !== 0) {
-    csl.error(`Typescript build process error with code '${exitCode}'.`);
-    process.exit(exitCode);
-  } else {
+  try {
+    execSync(`tsc -p ${join(__dirname, 'tsconfig.json')}`, {
+      stdio: 'inherit',
+    });
     csl.success('tsc build completed successfully.');
+  } catch (error) {
+    csl.error(`Typescript build process error.`);
   }
 }
 

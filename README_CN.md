@@ -28,14 +28,11 @@ build指令依赖于[`tsc`](https://www.typescriptlang.org/docs/handbook/compile
 {
   "name": "example",
   "version": "0.0.1",
-  "description": "",
+  "description": "A example about xj",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "xj": "workspace:^"
   }

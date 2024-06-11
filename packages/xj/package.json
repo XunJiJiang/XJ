@@ -1,7 +1,7 @@
 {
   "name": "xj",
   "version": "0.0.1",
-  "description": "A simple framework",
+  "description": "A fast framework",
   "main": "./src/index.ts",
   "module": "./src/index.ts",
   "types": "./dist/xj.d.ts",
@@ -17,7 +17,12 @@
     },
     "./package.json": "./package.json"
   },
-  "keywords": [],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "xj"
+  ],
   "author": "XunJiJiang",
   "license": "MIT",
   "dependencies": {
