@@ -1,10 +1,10 @@
 {
-  "name": "@xj/shared",
+  "name": "@xj/xj-dom",
   "version": "0.0.1",
-  "description": "The shared of the fast framework xj",
+  "description": "The xj-dom of the fast framework xj",
   "main": "./src/index.ts",
   "module": "./src/index.ts",
-  "types": "./dist/shared.d.ts",
+  "types": "./dist/xj-dom.d.ts",
   "files": [
     "dist",
     "README.md",
@@ -13,7 +13,7 @@
   "exports": {
     ".": {
       "import": "./src/index.ts",
-      "types": "./dist/shared.d.ts"
+      "types": "./dist/xj-dom.d.ts"
     },
     "./package.json": "./package.json"
   },
@@ -24,5 +24,9 @@
     "xj"
   ],
   "author": "XunJiJiang",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "reflect-metadata": "^0.2.2",
+    "@xj/shared": "workspace:^"
+  }
 }

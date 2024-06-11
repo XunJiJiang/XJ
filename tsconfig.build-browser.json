@@ -6,5 +6,10 @@
     "emitDeclarationOnly": true,
     "stripInternal": true
   },
-  "include": ["packages/xj/src", "packages/shared/src"]
+  "include": [
+    "packages/xj/src",
+    "packages/shared/src",
+    "packages/xj-dom/src",
+    "packages/xj-core/src"
+  ]
 }
