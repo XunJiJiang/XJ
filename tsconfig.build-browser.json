@@ -10,6 +10,6 @@
     "packages/xj/src",
     "packages/shared/src",
     "packages/runtime-dom/src",
-    "packages/xj-core/src"
+    "packages/runtime-core/src"
   ]
 }
