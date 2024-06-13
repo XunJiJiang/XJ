@@ -103,7 +103,7 @@ async function writeIndexTs(packageName) {
 }
 
 async function updatePackagesJson(newPkgName) {
-  const packagesJsonPath = join(__dirname, `scripts/packages.json`);
+  const packagesJsonPath = join(__dirname, `packages/packages.json`);
 
   const packagesJson = require(packagesJsonPath);
 

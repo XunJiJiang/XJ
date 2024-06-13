@@ -27,6 +27,8 @@
   "license": "MIT",
   "dependencies": {
     "@xj/shared": "workspace:^",
+    "@xj/xj-core": "workspace:^",
+    "@xj/xj-dom": "workspace:^",
     "reflect-metadata": "^0.2.2"
   }
 }

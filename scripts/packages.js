@@ -15,7 +15,7 @@ const require = createRequire(import.meta.url);
 
 const __dirname = resolve(dirname(fileURLToPath(import.meta.url)), '../');
 
-const PACKAGES = require('./packages.json').packageNames;
+const PACKAGES = require('../packages/packages.json').packageNames;
 
 const OUTPUT_PATH_MAP = {
   'packages-dist': target => `packages/${target}/dist/`,
