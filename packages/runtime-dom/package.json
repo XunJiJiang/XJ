@@ -1,10 +1,10 @@
 {
-  "name": "@xj/xj-dom",
+  "name": "@xj/runtime-dom",
   "version": "0.0.1",
-  "description": "The xj-dom of the fast framework xj",
+  "description": "The runtime-dom of the fast framework xj",
   "main": "./src/index.ts",
   "module": "./src/index.ts",
-  "types": "./dist/xj-dom.d.ts",
+  "types": "./dist/runtime-dom.d.ts",
   "files": [
     "dist",
     "README.md",
@@ -13,7 +13,7 @@
   "exports": {
     ".": {
       "import": "./src/index.ts",
-      "types": "./dist/xj-dom.d.ts"
+      "types": "./dist/runtime-dom.d.ts"
     },
     "./package.json": "./package.json"
   },

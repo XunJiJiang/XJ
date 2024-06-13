@@ -2,7 +2,7 @@
   "packageNames": [
     "xj",
     "shared",
-    "xj-dom",
+    "runtime-dom",
     "xj-core"
   ]
 }
