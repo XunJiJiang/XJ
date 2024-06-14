@@ -1,4 +1,4 @@
-import { makeMap } from './makeMap';
+import { makeMap } from './makeMap'
 
 /**
  * On the client we only need to offer special cases for boolean attributes that
@@ -11,15 +11,15 @@ import { makeMap } from './makeMap';
  * - novalidate -> noValidate
  * - readonly -> readOnly
  */
-const specialBooleanAttrs = `itemscope,allowfullscreen,formnovalidate,ismap,nomodule,novalidate,readonly`;
-export const isSpecialBooleanAttr = /*#__PURE__*/ makeMap(specialBooleanAttrs);
+const specialBooleanAttrs = `itemscope,allowfullscreen,formnovalidate,ismap,nomodule,novalidate,readonly`
+export const isSpecialBooleanAttr = /*#__PURE__*/ makeMap(specialBooleanAttrs)
 
 export const isBooleanAttr = /*#__PURE__*/ makeMap(
   specialBooleanAttrs +
     `,async,autofocus,autoplay,controls,default,defer,disabled,hidden,` +
     `inert,loop,open,required,reversed,scoped,seamless,` +
     `checked,muted,multiple,selected`,
-);
+)
 
 /**
  * Known attributes, this is used for stringification of runtime static nodes
@@ -43,7 +43,7 @@ export const isKnownHtmlAttr = /*#__PURE__*/ makeMap(
     `selected,shape,size,sizes,slot,span,spellcheck,src,srcdoc,srclang,srcset,` +
     `start,step,style,summary,tabindex,target,title,translate,type,usemap,` +
     `value,width,wrap`,
-);
+)
 
 /**
  * Generated from https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute
@@ -88,4 +88,4 @@ export const isKnownSvgAttr = /*#__PURE__*/ makeMap(
     `writing-mode,x,x-height,x1,x2,xChannelSelector,xlink:actuate,xlink:arcrole,` +
     `xlink:href,xlink:role,xlink:show,xlink:title,xlink:type,xmlns:xlink,xml:base,xml:lang,` +
     `xml:space,y,y1,y2,yChannelSelector,z,zoomAndPan`,
-);
+)

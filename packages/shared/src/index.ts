@@ -1,3 +1,3 @@
-export { makeMap } from './makeMap';
-export * from './domTagConfig';
-export * from './domAttrConfig';
+export { makeMap } from './makeMap'
+export * from './domTagConfig'
+export * from './domAttrConfig'

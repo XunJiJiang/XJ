@@ -1,4 +1,4 @@
-import { makeMap } from './makeMap';
+import { makeMap } from './makeMap'
 
 const HTML_TAGS =
   'html,body,base,head,link,meta,style,title,address,article,aside,footer,' +
@@ -9,10 +9,10 @@ const HTML_TAGS =
   'canvas,script,noscript,del,ins,caption,col,colgroup,table,thead,tbody,td,' +
   'th,tr,button,datalist,fieldset,form,input,label,legend,meter,optgroup,' +
   'option,output,progress,select,textarea,details,dialog,menu,' +
-  'summary,template,blockquote,iframe,tfoot';
+  'summary,template,blockquote,iframe,tfoot'
 
 const VOID_TAGS =
-  'area,base,br,col,embed,hr,img,input,link,meta,param,source,track,wbr';
+  'area,base,br,col,embed,hr,img,input,link,meta,param,source,track,wbr'
 
 const SVG_TAGS =
   'svg,animate,animateMotion,animateTransform,circle,clipPath,color-profile,' +
@@ -24,19 +24,19 @@ const SVG_TAGS =
   'foreignObject,g,hatch,hatchpath,image,line,linearGradient,marker,mask,' +
   'mesh,meshgradient,meshpatch,meshrow,metadata,mpath,path,pattern,' +
   'polygon,polyline,radialGradient,rect,set,solidcolor,stop,switch,symbol,' +
-  'text,textPath,title,tspan,unknown,use,view';
+  'text,textPath,title,tspan,unknown,use,view'
 
 const MATS_TAGS =
   'annotation,annotation-xml,maction,maligngroup,malignmark,math,menclose,' +
   'merror,mfenced,mfrac,mfraction,mglyph,mi,mlabeledtr,mlongdiv,' +
   'mmultiscripts,mn,mo,mover,mpadded,mphantom,mprescripts,mroot,mrow,ms,' +
   'mscarries,mscarry,msgroup,msline,mspace,msqrt,msrow,mstack,mstyle,msub,' +
-  'msubsup,msup,mtable,mtd,mtext,mtr,munder,munderover,none,semantics';
+  'msubsup,msup,mtable,mtd,mtext,mtr,munder,munderover,none,semantics'
 
-export const isHTMLTag = /*#__PURE__*/ makeMap(HTML_TAGS);
+export const isHTMLTag = /*#__PURE__*/ makeMap(HTML_TAGS)
 
-export const isVoidTag = /*#__PURE__*/ makeMap(VOID_TAGS);
+export const isVoidTag = /*#__PURE__*/ makeMap(VOID_TAGS)
 
-export const isSVGTag = /*#__PURE__*/ makeMap(SVG_TAGS);
+export const isSVGTag = /*#__PURE__*/ makeMap(SVG_TAGS)
 
-export const isMATS = /*#__PURE__*/ makeMap(MATS_TAGS);
+export const isMATS = /*#__PURE__*/ makeMap(MATS_TAGS)
