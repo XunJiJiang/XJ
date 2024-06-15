@@ -49,6 +49,8 @@ export const isObject = (
 ): val is Record<string | number | symbol, unknown> =>
   val !== null && typeof val === 'object'
 
+export const isText = (val: unknown): val is Text => val instanceof Text
+
 export const isElement = (val: unknown): val is Element =>
   val instanceof Element
 
@@ -75,6 +77,8 @@ export const isIntegerKey = (key: unknown) =>
   key !== 'NaN' &&
   key[0] !== '-' &&
   '' + parseInt(key, 10) === key
+
+export type ReservedProp = 'key' | 'ref'
 
 export const isReservedProp = /*#__PURE__*/ makeMap(
   // the leading comma is intentional so empty string "" is also included
