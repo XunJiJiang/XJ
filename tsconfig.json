@@ -16,7 +16,7 @@
     "esModuleInterop": true,
     "removeComments": false,
     "jsx": "preserve",
-    "lib": ["es2016", "dom"],
+    "lib": ["ESNext", "dom"],
     "types": ["node"],
     "paths": {
       "xj": ["packages/xj/src/index.ts"],
