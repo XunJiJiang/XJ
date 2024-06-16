@@ -104,7 +104,9 @@ const _createComponent = (
           throw new Error(`event ${key} should be a function`)
         }
         const eventName = sliceOn(key)
-        _event[eventName as XJEventKey] = value as (...args: unknown[]) => void
+        _event[('on' + eventName) as XJEventKey] = value as (
+          ...args: unknown[]
+        ) => void
       } else {
         _props[key] = value
       }
