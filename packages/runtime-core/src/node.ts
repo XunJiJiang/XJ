@@ -30,15 +30,9 @@ type XJPropKey = string extends XJEventKey | ReservedProp ? never : string
 
 type XJProp = Record<XJPropKey, unknown>
 
-type ChildrenNode =
-  | string
-  | number
-  | boolean
-  | Text
-  | Element
-  | Element[]
-  | null
-  | undefined
+type ChildNode = string | number | boolean | Text | Element | null | undefined
+
+type ChildrenNode = ChildNode | ChildNode[]
 
 type XJSlots = Record<string, (...args: unknown[]) => ChildrenNode>
 
@@ -63,13 +57,41 @@ function setReservedProp(
   }
 }
 
-function isChildrenNode(val: unknown): val is ChildrenNode {
-  function isChildrenNodeArr(val: unknown): val is ChildrenNode[] {
-    return (
-      isArray(val) && val.every(val => isChildrenNode(val) && !isArray(val))
-    )
+function elementalizingChildrenNode(
+  children: ChildrenNode,
+): (Element | Text)[] {
+  if (isString(children) || isNumber(children) || isBoolean(children)) {
+    return [document.createTextNode(String(children))]
+  }
+  if (isText(children) || isElement(children)) {
+    return [children]
+  }
+  if (isChildrenNodeArr(children)) {
+    return children.map(child => {
+      if (isString(child) || isNumber(child) || isBoolean(child)) {
+        return document.createTextNode(String(child))
+      }
+      if (isText(child) || isElement(child)) {
+        return child
+      }
+      /*#__PURE__*/ console.log(
+        `runtime-core -> src -> node.ts -> elementalizingChildrenNode -> child: ${child}`,
+      )
+      throw new Error(`Invalid children: ${child}`)
+    })
   }
 
+  /*#__PURE__*/ console.log(
+    `runtime-core -> src -> node.ts -> elementalizingChildrenNode -> children: ${children}`,
+  )
+  throw new Error(`Invalid children: ${children}`)
+}
+
+function isChildrenNodeArr(val: unknown): val is ChildNode[] {
+  return isArray(val) && val.every(val => !isArray(val) && isChildrenNode(val))
+}
+
+function isChildrenNode(val: unknown): val is ChildrenNode {
   return (
     isString(val) ||
     isNumber(val) ||
@@ -97,7 +119,7 @@ function isXJSlots(
 export type XJComponent = (
   props: XJData,
   event: XJEvent,
-  children?: (() => Element | Text | Element[]) | XJSlots,
+  children?: (() => Element | Text | (Element | Text)[]) | XJSlots,
 ) => Element
 
 function _createComponent(
@@ -138,18 +160,7 @@ function _createComponent(
     } else {
       return component(_props, _event, () => {
         if (isChildrenNode(children)) {
-          if (isString(children) || isNumber(children) || isBoolean(children)) {
-            return document.createTextNode(String(children))
-          }
-          if (isText(children) || isElement(children)) {
-            return children
-          }
-          if (
-            isArray(children) &&
-            children.every(val => isText(val) || isElement(val))
-          ) {
-            return children
-          }
+          return elementalizingChildrenNode(children)
         }
 
         /*#__PURE__*/ console.log(
@@ -194,27 +205,11 @@ function _createHTMLElement(
   }
 
   if (children) {
-    if (isArray(children)) {
-      children.forEach(child => {
-        if (isString(child) || isNumber(child) || isBoolean(child)) {
-          el.appendChild(document.createTextNode(String(child)))
-        } else if (isText(child) || isElement(child)) {
-          el.appendChild(child)
-        } else {
-          /*#__PURE__*/ console.log(
-            `runtime-core -> src -> node.ts -> _createHTMLElement -> children: ${child}`,
-          )
-          throw new Error(`Invalid children: ${child}`)
-        }
+    if (isChildrenNode(children)) {
+      const _children = elementalizingChildrenNode(children)
+      _children.forEach(child => {
+        el.appendChild(child)
       })
-    } else if (
-      isString(children) ||
-      isNumber(children) ||
-      isBoolean(children)
-    ) {
-      el.appendChild(document.createTextNode(String(children)))
-    } else if (isText(children) || isElement(children)) {
-      el.appendChild(children)
     } else {
       /*#__PURE__*/ console.log(
         `runtime-core -> src -> node.ts -> _createHTMLElement -> children: ${children}`,
@@ -254,6 +249,16 @@ function _createMATS(
   throw new Error(`MATS tag ${tag} is not supported`)
 }
 
+// function _createNode(
+//   tag: string,
+//   props: XJData | null,
+//   children: ChildrenNode,
+// ): Element
+// function _createNode(
+//   tag: XJComponent,
+//   props: XJData | null,
+//   children: ChildrenNode | (() => Element) | XJSlots,
+// ): Element
 function _createNode(
   tag: string | XJComponent,
   props: XJData | null,
@@ -295,8 +300,8 @@ function _createNode(
 
 export const createNode = (
   tag: string | XJComponent,
-  props?: XJData | null | undefined,
-  children?: ChildrenNode | (() => Element) | XJSlots | null | undefined,
+  props?: XJData | null,
+  children?: ChildrenNode | (() => Element) | XJSlots,
 ): Element => {
   return _createNode(tag, props ?? {}, children ?? null)
 }
