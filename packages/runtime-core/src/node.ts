@@ -1,5 +1,5 @@
 import {
-  type ReservedProp,
+  type ReservedPropKey,
   isHTMLTag,
   isVoidTag,
   isSVGTag,
@@ -13,105 +13,86 @@ import {
   isOn,
   sliceOn,
   isEventTag,
-  isArray,
   isReservedProp,
-  isPlainObject,
+  isSpecialNativeProp,
   // isKnownHtmlAttr,
   // isBooleanAttr,
 } from '@xj/shared'
 
-type XJData = Record<string, unknown>
+import {
+  type XJData,
+  type XJEventKey,
+  type XJEvent,
+  type XJProp,
+  type ChildrenNode,
+  type XJSlots,
+  type XJComponent,
+  type ChildrenElement,
+  isXJSlots,
+  isChildrenNodeArr,
+  isChildrenNode,
+} from './component'
 
-type XJEventKey = `on${string}` | `$${string}`
+import { nodeOps } from './nodeOps'
 
-type XJEvent = Record<XJEventKey, (...args: unknown[]) => void>
+import {
+  type ReservedProps,
+  setReservedProp,
+  setSpecialNativeProp,
+  captureComponentReservedProp,
+} from './prop'
 
-type XJPropKey = string extends XJEventKey | ReservedProp ? never : string
+const elementalizingChildrenNode = (
+  children: ChildrenNode,
+): (Element | Text)[] => {
+  const { createText } = nodeOps
 
-type XJProp = Record<XJPropKey, unknown>
+  if (isString(children) || isNumber(children) || isBoolean(children)) {
+    return [createText(String(children))]
+  }
 
-type ChildrenNode =
-  | string
-  | number
-  | boolean
-  | Text
-  | Element
-  | Element[]
-  | null
-  | undefined
+  if (isText(children) || isElement(children)) {
+    return [children]
+  }
 
-type XJSlots = Record<string, (...args: unknown[]) => ChildrenNode>
+  if (isChildrenNodeArr(children)) {
+    return children.map(child => {
+      if (isString(child) || isNumber(child) || isBoolean(child)) {
+        return createText(String(child))
+      }
 
-function setReservedProp(
-  key: ReservedProp,
-  value: unknown,
-  el: HTMLElement,
-): void {
-  if (key === 'ref') {
-    if (isFunction(value)) {
-      ;(value as (el: HTMLElement) => void)(el)
-    } else if (isPlainObject(value) && 'current' in value) {
-      ;(value as { current: HTMLElement }).current = el
-    } else {
+      if (isText(child) || isElement(child)) {
+        return child
+      }
+
       /*#__PURE__*/ console.log(
-        `runtime-core -> src -> node.ts -> _createHTMLElement -> key: ${key}`,
+        `runtime-core -> src -> node.ts -> elementalizingChildrenNode -> child: ${child}`,
       )
-      throw new Error(
-        `ref should be a function or an object with a current property`,
-      )
-    }
-  }
-}
-
-function isChildrenNode(val: unknown): val is ChildrenNode {
-  function isChildrenNodeArr(val: unknown): val is ChildrenNode[] {
-    return (
-      isArray(val) && val.every(val => isChildrenNode(val) && !isArray(val))
-    )
+      throw new Error(`Invalid children: ${child}`)
+    })
   }
 
-  return (
-    isString(val) ||
-    isNumber(val) ||
-    isBoolean(val) ||
-    isText(val) ||
-    isElement(val) ||
-    isChildrenNodeArr(val) ||
-    val === null ||
-    val === undefined
+  /*#__PURE__*/ console.log(
+    `runtime-core -> src -> node.ts -> elementalizingChildrenNode -> children: ${children}`,
   )
+  throw new Error(`Invalid children: ${children}`)
 }
 
-function isXJSlots(
-  val: XJSlots | (() => Element) | ChildrenNode,
-): val is XJSlots {
-  return (
-    isPlainObject(val) &&
-    !isText(val) &&
-    !isElement(val) &&
-    !isFunction(val) &&
-    Object.values(val).every(isFunction)
-  )
-}
-
-export type XJComponent = (
-  props: XJData,
-  event: XJEvent,
-  children?: (() => Element | Text | Element[]) | XJSlots,
-) => Element
-
-function _createComponent(
+const _createComponent = (
   component: XJComponent,
   props: XJData | null,
-  children: ChildrenNode | (() => Element) | XJSlots,
-): Element {
+  children: ChildrenNode | ((...args: unknown[]) => ChildrenElement) | XJSlots,
+): Element => {
   const _props = {} as XJProp
   const _event = {} as XJEvent
+
+  const reservedProps: Partial<ReservedProps> = {}
+
   if (props) {
     for (const key in props) {
       const value = props[key]
       if (isReservedProp(key)) {
-        // TODO: handle reserved props
+        reservedProps[key as ReservedPropKey] = value
         continue
       }
 
@@ -132,51 +113,65 @@ function _createComponent(
 
   if (children) {
     if (isXJSlots(children)) {
-      return component(_props, _event, children)
+      return captureComponentReservedProp(
+        component,
+        _props,
+        _event,
+        children,
+        reservedProps,
+      )
     } else if (isFunction(children)) {
-      return component(_props, _event, children)
+      return captureComponentReservedProp(
+        component,
+        _props,
+        _event,
+        children,
+        reservedProps,
+      )
     } else {
-      return component(_props, _event, () => {
-        if (isChildrenNode(children)) {
-          if (isString(children) || isNumber(children) || isBoolean(children)) {
-            return document.createTextNode(String(children))
+      return captureComponentReservedProp(
+        component,
+        _props,
+        _event,
+        () => {
+          if (isChildrenNode(children)) {
+            return elementalizingChildrenNode(children)
           }
-          if (isText(children) || isElement(children)) {
-            return children
-          }
-          if (
-            isArray(children) &&
-            children.every(val => isText(val) || isElement(val))
-          ) {
-            return children
-          }
-        }
 
-        /*#__PURE__*/ console.log(
-          `runtime-core -> src -> node.ts -> _createComponent -> children: ${children}`,
-        )
-        throw new Error(`Invalid children: ${children}`)
-      })
+          /*#__PURE__*/ console.log(
+            `runtime-core -> src -> node.ts -> _createComponent -> children: ${children}`,
+          )
+          throw new Error(`Invalid children: ${children}`)
+        },
+        reservedProps,
+      )
     }
   } else {
     return component(_props, _event)
   }
 }
 
-function _createHTMLElement(
+const _createHTMLElement = (
   tag: string,
   props: XJData | null,
   children: ChildrenNode,
-): Element {
-  const el = document.createElement(tag)
+): Element => {
+  const { createElement } = nodeOps
+  const el = createElement(tag)
   if (props) {
     for (const key in props) {
       const value = props[key]
+
       if (isReservedProp(key)) {
-        // TODO: handle reserved props
-        setReservedProp(key as ReservedProp, value, el as HTMLElement)
+        setReservedProp(key, value, el as HTMLElement)
         continue
       }
+
+      if (isSpecialNativeProp(key)) {
+        setSpecialNativeProp(key, value, el as HTMLElement)
+        continue
+      }
+
       if (isOn(key)) {
         const eventName = sliceOn(key)
         if (isEventTag(eventName)) {
@@ -187,34 +182,19 @@ function _createHTMLElement(
           )
           throw new Error(`event ${eventName} is not supported in ${tag} tag`)
         }
-      } else {
-        el.setAttribute(key, String(value) as string)
+        continue
       }
+
+      el.setAttribute(key, String(value) as string)
     }
   }
 
   if (children) {
-    if (isArray(children)) {
-      children.forEach(child => {
-        if (isString(child) || isNumber(child) || isBoolean(child)) {
-          el.appendChild(document.createTextNode(String(child)))
-        } else if (isText(child) || isElement(child)) {
-          el.appendChild(child)
-        } else {
-          /*#__PURE__*/ console.log(
-            `runtime-core -> src -> node.ts -> _createHTMLElement -> children: ${child}`,
-          )
-          throw new Error(`Invalid children: ${child}`)
-        }
+    if (isChildrenNode(children)) {
+      const _children = elementalizingChildrenNode(children)
+      _children.forEach(child => {
+        el.appendChild(child)
       })
-    } else if (
-      isString(children) ||
-      isNumber(children) ||
-      isBoolean(children)
-    ) {
-      el.appendChild(document.createTextNode(String(children)))
-    } else if (isText(children) || isElement(children)) {
-      el.appendChild(children)
     } else {
       /*#__PURE__*/ console.log(
         `runtime-core -> src -> node.ts -> _createHTMLElement -> children: ${children}`,
@@ -226,11 +206,11 @@ function _createHTMLElement(
   return el
 }
 
-function _createSVGElement(
+const _createSVGElement = (
   tag: string,
   props: XJData | null,
   children: ChildrenNode,
-): Element {
+): Element => {
   // TODO: handle SVG
   props
   children
@@ -240,11 +220,11 @@ function _createSVGElement(
   throw new Error(`SVG tag ${tag} is not supported`)
 }
 
-function _createMATS(
+const _createMATS = (
   tag: string,
   props: XJData | null,
   children: ChildrenNode,
-): Element {
+): Element => {
   // TODO: handle MATS
   props
   children
@@ -254,11 +234,11 @@ function _createMATS(
   throw new Error(`MATS tag ${tag} is not supported`)
 }
 
-function _createNode(
+const _createNode = (
   tag: string | XJComponent,
   props: XJData | null,
-  children: ChildrenNode | (() => Element) | XJSlots,
-): Element {
+  children: ChildrenNode | ((...args: unknown[]) => ChildrenElement) | XJSlots,
+): Element => {
   if (isFunction(tag)) {
     return _createComponent(tag as XJComponent, props, children)
   } else if (!isString(tag)) {
@@ -295,8 +275,8 @@ function _createNode(
 
 export const createNode = (
   tag: string | XJComponent,
-  props?: XJData | null | undefined,
-  children?: ChildrenNode | (() => Element) | XJSlots | null | undefined,
+  props?: XJData | null,
+  children?: ChildrenNode | ((...args: unknown[]) => ChildrenElement) | XJSlots,
 ): Element => {
   return _createNode(tag, props ?? {}, children ?? null)
 }
