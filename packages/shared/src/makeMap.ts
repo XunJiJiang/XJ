@@ -1,9 +1,9 @@
-export function makeMap(
+export const makeMap = <T extends string = string>(
   str: string,
   expectsLowerCase?: boolean,
-): (key: string) => boolean {
+) => {
   const set = new Set(str.split(','))
   return expectsLowerCase
-    ? val => set.has(val.toLowerCase())
-    : val => set.has(val)
+    ? (key: string): key is T => set.has(key.toLowerCase())
+    : (key: string): key is T => set.has(key)
 }

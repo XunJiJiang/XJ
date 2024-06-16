@@ -13,6 +13,8 @@ export const hasOwn = (
   key: string | symbol,
 ): key is keyof typeof val => hasOwnProperty.call(val, key)
 
+export const extend = Object.assign
+
 export const objectToString = Object.prototype.toString
 export const toTypeString = (value: unknown): string =>
   objectToString.call(value)
@@ -33,9 +35,7 @@ export const isDate = (val: unknown): val is Date =>
 export const isRegExp = (val: unknown): val is RegExp =>
   toTypeString(val) === '[object RegExp]'
 
-type FunctionType =
-  | ((...args: unknown[]) => unknown)
-  | (new (...args: unknown[]) => unknown)
+type FunctionType = (...args: unknown[]) => unknown
 
 export const isFunction = (val: unknown): val is FunctionType =>
   typeof val === 'function'
@@ -78,12 +78,17 @@ export const isIntegerKey = (key: unknown) =>
   key[0] !== '-' &&
   '' + parseInt(key, 10) === key
 
-export type ReservedProp = 'key' | 'ref'
+export type ReservedPropKey = 'key' | 'ref'
 
-export const isReservedProp = /*#__PURE__*/ makeMap(
+export const isReservedProp = /*#__PURE__*/ makeMap<ReservedPropKey>(
   // the leading comma is intentional so empty string "" is also included
   ',key,ref',
 )
+
+export type SpecialNativePropKey = 'style' | 'class'
+
+export const isSpecialNativeProp =
+  /*#__PURE__*/ makeMap<SpecialNativePropKey>('style,class')
 
 // compare whether a value has changed, accounting for NaN.
 export const hasChanged = (value: unknown, oldValue: unknown): boolean =>
