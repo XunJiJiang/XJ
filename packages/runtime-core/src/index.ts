@@ -1,6 +1,28 @@
+// import { createNode } from './node'
+import { isElement } from '@xj/shared'
+
+export const createRoot = (container: Element) => {
+  if (!isElement(container)) {
+    /*#__PURE__*/ console.log(
+      `runtime-core -> src -> index.ts -> createRoot -> el: ${container}`,
+    )
+    throw new Error('Invalid root element')
+  }
+  const render = (rootComponent: Element): void => {
+    container.appendChild(rootComponent)
+  }
+
+  return {
+    render,
+  }
+}
+
 export { createNode } from './node'
 export {} from './nodeOps'
+export {} from './prop'
+export { expose } from './expose'
 export {
+  type XJData,
   type XJEventKey,
   type XJEvent,
   type XJPropKey,
@@ -9,5 +31,3 @@ export {
   type XJSlots,
   type XJComponent,
 } from './component'
-export {} from './prop'
-export { expose } from './expose'
