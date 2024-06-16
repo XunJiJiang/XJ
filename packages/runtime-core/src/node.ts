@@ -249,16 +249,6 @@ function _createMATS(
   throw new Error(`MATS tag ${tag} is not supported`)
 }
 
-// function _createNode(
-//   tag: string,
-//   props: XJData | null,
-//   children: ChildrenNode,
-// ): Element
-// function _createNode(
-//   tag: XJComponent,
-//   props: XJData | null,
-//   children: ChildrenNode | (() => Element) | XJSlots,
-// ): Element
 function _createNode(
   tag: string | XJComponent,
   props: XJData | null,
