@@ -5,6 +5,7 @@ import {
   isSVGTag,
   isMATS,
   isFunction,
+  isArray,
   isString,
   isNumber,
   isBoolean,
@@ -15,6 +16,7 @@ import {
   isEventTag,
   isReservedProp,
   isSpecialNativeProp,
+  toLowerCase,
   // isKnownHtmlAttr,
   // isBooleanAttr,
 } from '@xj/shared'
@@ -24,13 +26,14 @@ import {
   type XJEventKey,
   type XJEvent,
   type XJProp,
-  type ChildrenNode,
+  type XJChildNode,
+  type XJChildrenNode,
   type XJSlots,
   type XJComponent,
   type ChildrenElement,
   isXJSlots,
-  isChildrenNodeArr,
-  isChildrenNode,
+  isXJChildrenNodeArr,
+  isXJChildrenNode,
 } from './component'
 
 import { nodeOps } from './nodeOps'
@@ -42,8 +45,15 @@ import {
   captureComponentReservedProp,
 } from './prop'
 
-const elementalizingChildrenNode = (
-  children: ChildrenNode,
+export const Fragment = Symbol.for('x-fgt') as unknown as {
+  __isFragment: true // 标识符，表示这是一个 Fragment
+  new (): {
+    $props: XJData // 构造函数签名，表示实例对象有 $props 属性
+  }
+}
+
+const elementalizingXJChildrenNode = (
+  children: XJChildrenNode,
 ): (Element | Text)[] => {
   const { createText } = nodeOps
 
@@ -55,7 +65,7 @@ const elementalizingChildrenNode = (
     return [children]
   }
 
-  if (isChildrenNodeArr(children)) {
+  if (isXJChildrenNodeArr(children)) {
     return children.map(child => {
       if (isString(child) || isNumber(child) || isBoolean(child)) {
         return createText(String(child))
@@ -65,15 +75,19 @@ const elementalizingChildrenNode = (
         return child
       }
 
+      if (child == null) {
+        return createText('')
+      }
+
       /*#__PURE__*/ console.log(
-        `runtime-core -> src -> node.ts -> elementalizingChildrenNode -> child: ${child}`,
+        `runtime-core -> src -> node.ts -> elementalizingXJChildrenNode -> child: ${child}`,
       )
       throw new Error(`Invalid children: ${child}`)
     })
   }
 
   /*#__PURE__*/ console.log(
-    `runtime-core -> src -> node.ts -> elementalizingChildrenNode -> children: ${children}`,
+    `runtime-core -> src -> node.ts -> elementalizingXJChildrenNode -> children: ${children}`,
   )
   throw new Error(`Invalid children: ${children}`)
 }
@@ -81,7 +95,10 @@ const elementalizingChildrenNode = (
 const _createComponent = (
   component: XJComponent,
   props: XJData | null,
-  children: ChildrenNode | ((...args: unknown[]) => ChildrenElement) | XJSlots,
+  children:
+    | XJChildrenNode
+    | ((...args: unknown[]) => ChildrenElement)
+    | XJSlots,
 ): Element => {
   const _props = {} as XJProp
   const _event = {} as XJEvent
@@ -104,7 +121,9 @@ const _createComponent = (
           throw new Error(`event ${key} should be a function`)
         }
         const eventName = sliceOn(key)
-        _event[eventName as XJEventKey] = value as (...args: unknown[]) => void
+        _event[('on' + eventName) as XJEventKey] = value as (
+          ...args: unknown[]
+        ) => void
       } else {
         _props[key] = value
       }
@@ -134,8 +153,8 @@ const _createComponent = (
         _props,
         _event,
         () => {
-          if (isChildrenNode(children)) {
-            return elementalizingChildrenNode(children)
+          if (isXJChildrenNode(children)) {
+            return elementalizingXJChildrenNode(children)
           }
 
           /*#__PURE__*/ console.log(
@@ -154,7 +173,7 @@ const _createComponent = (
 const _createHTMLElement = (
   tag: string,
   props: XJData | null,
-  children: ChildrenNode,
+  children: XJChildrenNode,
 ): Element => {
   const { createElement } = nodeOps
   const el = createElement(tag)
@@ -175,7 +194,7 @@ const _createHTMLElement = (
       if (isOn(key)) {
         const eventName = sliceOn(key)
         if (isEventTag(eventName)) {
-          el.addEventListener(eventName, value as EventListener)
+          el.addEventListener(toLowerCase(eventName), value as EventListener)
         } else {
           /*#__PURE__*/ console.log(
             `runtime-core -> src -> node.ts -> _createHTMLElement -> key: ${key}`,
@@ -190,8 +209,8 @@ const _createHTMLElement = (
   }
 
   if (children) {
-    if (isChildrenNode(children)) {
-      const _children = elementalizingChildrenNode(children)
+    if (isXJChildrenNode(children)) {
+      const _children = elementalizingXJChildrenNode(children)
       _children.forEach(child => {
         el.appendChild(child)
       })
@@ -209,7 +228,7 @@ const _createHTMLElement = (
 const _createSVGElement = (
   tag: string,
   props: XJData | null,
-  children: ChildrenNode,
+  children: XJChildrenNode,
 ): Element => {
   // TODO: handle SVG
   props
@@ -223,7 +242,7 @@ const _createSVGElement = (
 const _createMATS = (
   tag: string,
   props: XJData | null,
-  children: ChildrenNode,
+  children: XJChildrenNode,
 ): Element => {
   // TODO: handle MATS
   props
@@ -237,7 +256,10 @@ const _createMATS = (
 const _createNode = (
   tag: string | XJComponent,
   props: XJData | null,
-  children: ChildrenNode | ((...args: unknown[]) => ChildrenElement) | XJSlots,
+  children:
+    | XJChildrenNode
+    | ((...args: unknown[]) => ChildrenElement)
+    | XJSlots,
 ): Element => {
   if (isFunction(tag)) {
     return _createComponent(tag as XJComponent, props, children)
@@ -252,7 +274,7 @@ const _createNode = (
         )
         throw new Error(`slots can't be used in non-component element`)
       })()
-    : isChildrenNode(children)
+    : isXJChildrenNode(children)
       ? children
       : null
 
@@ -276,7 +298,30 @@ const _createNode = (
 export const createNode = (
   tag: string | XJComponent,
   props?: XJData | null,
-  children?: ChildrenNode | ((...args: unknown[]) => ChildrenElement) | XJSlots,
+  children?:
+    | XJChildrenNode
+    | ((...args: unknown[]) => ChildrenElement)
+    | XJSlots,
 ): Element => {
   return _createNode(tag, props ?? {}, children ?? null)
+}
+
+export const h = (
+  tag: string | XJComponent,
+  props?: XJData | null,
+  children?:
+    | XJChildrenNode
+    | ((...args: unknown[]) => ChildrenElement)
+    | XJSlots,
+  ...childrenArr: XJChildNode[]
+): Element => {
+  const _children = isXJSlots(children)
+    ? children
+    : isFunction(children)
+      ? children
+      : [
+          ...(isArray(children) ? children : [children]),
+          ...(childrenArr.length > 0 ? childrenArr : []),
+        ]
+  return createNode(tag, props ?? {}, _children ?? null)
 }

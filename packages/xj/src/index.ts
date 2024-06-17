@@ -1,20 +1,20 @@
 // import { shared } from '@xj/shared';
 import 'reflect-metadata'
+import { createNode, Fragment, createRoot, expose, h } from '@xj/runtime-core'
 
-type Xj = {
-  name: string
-  age: number
-  sayHello: () => void
+const xj = {
+  createNode,
+  Fragment,
+  createRoot,
+  expose,
+  h,
 }
 
-export const xj: Xj = {
-  name: 'xj',
-  age: 18,
-  sayHello: () => {
-    console.log('Hello, I am xj')
-  },
+export const __jsx = {
+  h,
+  Fragment,
 }
 
-export default function createXJ(dom: HTMLDivElement) {
-  dom.innerHTML = 'XJ hello'
-}
+export { createNode, Fragment, createRoot, expose, h } from '@xj/runtime-core'
+
+export default xj
