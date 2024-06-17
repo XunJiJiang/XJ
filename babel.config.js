@@ -10,5 +10,15 @@ export default {
       },
     ],
   ],
-  plugins: ['@babel/plugin-transform-class-properties'],
-};
+  plugins: [
+    '@babel/plugin-transform-class-properties',
+    [
+      '@babel/plugin-transform-react-jsx',
+      {
+        pragma: 'Xj.h', // default pragma is React.createElement
+        pragmaFrag: 'Xj.Fragment', // default is React.Fragment
+        throwIfNamespace: false, // defaults to true
+      },
+    ],
+  ],
+}

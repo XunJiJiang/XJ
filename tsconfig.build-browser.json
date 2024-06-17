@@ -9,7 +9,7 @@
   "include": [
     "packages/xj/src",
     "packages/shared/src",
-    "packages/xj-dom/src",
-    "packages/xj-core/src"
+    "packages/runtime-dom/src",
+    "packages/runtime-core/src"
   ]
 }

@@ -15,8 +15,7 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "removeComments": false,
-    "jsx": "preserve",
-    "lib": ["es2016", "dom"],
+    "lib": ["ESNext", "dom"],
     "types": ["node"],
     "paths": {
       "xj": ["packages/xj/src/index.ts"],
@@ -24,7 +23,9 @@
     },
 
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+
+    "jsx": "preserve"
   },
   // "files": [
   //   "packages/xj/src/index.ts",
@@ -34,6 +35,7 @@
     "packages/*/types",
     "packages/*/src",
     "packages/*/__tests__",
+    "packages/xj/runtime-jsx",
     "scripts/*",
     "rollup.*.mjs"
   ]
