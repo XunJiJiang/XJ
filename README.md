@@ -13,11 +13,11 @@ Create the following file structure.
 ```
 <your workspace root>
 └─example
-    ├package.json
-    ├vite.config.js
-    └─src
-       ├─index.html
-       └─main.jsx
+  ├package.json
+  ├vite.config.js
+  └─src
+    ├─index.html
+    └─main.jsx
 ```
 
 Add the following content to the file.
@@ -49,6 +49,11 @@ export default defineConfig({
   server: {
     host: '127.0.0.1',
     port: 3000,
+  },
+  esbuild: {
+    jsxFactory: '__jsx.h',
+    jsxFragment: '__jsx.Fragment',
+    jsxInject: `import { __jsx } from 'xj'`,
   },
 })
 ```

@@ -13,11 +13,11 @@ build指令依赖于[`tsc`](https://www.typescriptlang.org/docs/handbook/compile
 ```
 <your workspace root>
 └─example
-    ├package.json
-    ├vite.config.js
-    └─src
-       ├─index.html
-       └─main.jsx
+  ├package.json
+  ├vite.config.js
+  └─src
+    ├─index.html
+    └─main.jsx
 ```
 
 文件内添加如下内容
@@ -49,6 +49,11 @@ export default defineConfig({
   server: {
     host: '127.0.0.1',
     port: 3000,
+  },
+  esbuild: {
+    jsxFactory: '__jsx.h',
+    jsxFragment: '__jsx.Fragment',
+    jsxInject: `import { __jsx } from 'xj'`,
   },
 })
 ```
