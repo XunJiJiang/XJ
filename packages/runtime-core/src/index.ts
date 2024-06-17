@@ -17,9 +17,9 @@ export const createRoot = (container: Element) => {
   }
 }
 
-export { createNode } from './node'
+export { createNode, h, Fragment } from './node'
 export {} from './nodeOps'
-export {} from './prop'
+export { type ReservedProps } from './prop'
 export { expose } from './expose'
 export {
   type XJData,
@@ -27,7 +27,7 @@ export {
   type XJEvent,
   type XJPropKey,
   type XJProp,
-  type ChildrenNode,
+  type XJChildrenNode,
   type XJSlots,
   type XJComponent,
 } from './component'

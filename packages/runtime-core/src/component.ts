@@ -22,7 +22,7 @@ export type XJPropKey = string extends XJEventKey | ReservedPropKey
 
 export type XJProp = Record<XJPropKey, unknown>
 
-export type ChildNode =
+export type XJChildNode =
   | string
   | number
   | boolean
@@ -31,9 +31,9 @@ export type ChildNode =
   | null
   | undefined
 
-export type ChildrenNode = ChildNode | ChildNode[]
+export type XJChildrenNode = XJChildNode | XJChildNode[]
 
-export type XJSlots = Record<string, (...args: unknown[]) => ChildrenNode>
+export type XJSlots = Record<string, (...args: unknown[]) => XJChildrenNode>
 
 export type ChildrenElement = Element | Text | (Element | Text)[]
 
@@ -53,7 +53,7 @@ export type XJComponent<T extends 'children' | 'slots' | null = null> =
         ) => Element
 
 export const isXJSlots = (
-  val: XJSlots | ((...args: unknown[]) => ChildrenElement) | ChildrenNode,
+  val: XJSlots | ((...args: unknown[]) => ChildrenElement) | XJChildrenNode,
 ): val is XJSlots => {
   return (
     isPlainObject(val) &&
@@ -64,17 +64,17 @@ export const isXJSlots = (
   )
 }
 
-export const isChildrenNodeArr = (val: unknown): val is ChildNode[] =>
-  isArray(val) && val.every(val => !isArray(val) && isChildrenNode(val))
+export const isXJChildrenNodeArr = (val: unknown): val is XJChildNode[] =>
+  isArray(val) && val.every(val => !isArray(val) && isXJChildrenNode(val))
 
-export const isChildrenNode = (val: unknown): val is ChildrenNode => {
+export const isXJChildrenNode = (val: unknown): val is XJChildrenNode => {
   return (
     isString(val) ||
     isNumber(val) ||
     isBoolean(val) ||
     isText(val) ||
     isElement(val) ||
-    isChildrenNodeArr(val) ||
+    isXJChildrenNodeArr(val) ||
     val === null ||
     val === undefined
   )

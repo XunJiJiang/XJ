@@ -24,6 +24,8 @@ export const toRawType = (value: unknown): string => {
   return toTypeString(value).slice(8, -1)
 }
 
+export const toLowerCase = (str: string): string => str.toLowerCase()
+
 export const isArray = Array.isArray
 export const isMap = (val: unknown): val is Map<unknown, unknown> =>
   toTypeString(val) === '[object Map]'
