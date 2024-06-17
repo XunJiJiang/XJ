@@ -276,7 +276,12 @@ const _createNode = (
       })()
     : isXJChildrenNode(children)
       ? children
-      : null
+      : (() => {
+          /*#__PURE__*/ console.log(
+            `runtime-core -> src -> node.ts -> _createNode -> children: ${children}`,
+          )
+          throw new Error(`Invalid children: ${children}`)
+        })()
 
   if (isHTMLTag(tag)) {
     if (isVoidTag(tag) && children) {
@@ -315,13 +320,20 @@ export const h = (
     | XJSlots,
   ...childrenArr: XJChildNode[]
 ): Element => {
+  function _flat(array: XJChildNode[]): XJChildNode[] {
+    if (array.every(val => !isArray(val))) {
+      return array
+    }
+    const _array = array.flat()
+    return _flat(_array)
+  }
   const _children = isXJSlots(children)
     ? children
     : isFunction(children)
       ? children
-      : [
-          ...(isArray(children) ? children : [children]),
-          ...(childrenArr.length > 0 ? childrenArr : []),
-        ]
+      : [...(isArray(children) ? children : [children]), ..._flat(childrenArr)]
+
+  console.log(tag, children, childrenArr)
+  console.log(_children)
   return createNode(tag, props ?? {}, _children ?? null)
 }
