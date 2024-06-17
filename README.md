@@ -17,7 +17,7 @@ Create the following file structure.
     ├vite.config.js
     └─src
        ├─index.html
-       └─main.js
+       └─main.jsx
 ```
 
 Add the following content to the file.
@@ -42,7 +42,7 @@ Add the following content to the file.
 **vite.config.js**
 
 ```js
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vite'
 
 export default defineConfig({
   root: './src/',
@@ -50,7 +50,7 @@ export default defineConfig({
     host: '127.0.0.1',
     port: 3000,
   },
-});
+})
 ```
 
 **index.html**
@@ -65,17 +65,19 @@ export default defineConfig({
   </head>
   <body>
     <div id="main"></div>
-    <script type="module" src="./main.js"></script>
+    <script type="module" src="./main.jsx"></script>
   </body>
 </html>
 ```
 
-**main.js**
+**main.jsx**
 
-```js
-import XJ from 'xj';
+```jsx
+import { createRoot, expose } from 'xj'
 
-XJ(document.getElementById('main'));
+const app = createRoot(document.getElementById('main')).render(
+  <h1>hello XJ</h1>,
+)
 ```
 
 Install the package in the **example** directory.
