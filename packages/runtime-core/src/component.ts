@@ -8,7 +8,7 @@ import {
   isBoolean,
   isElement,
   isFunction,
-} from '@xj/shared'
+} from '@xj-fv/shared'
 
 export type XJData = Record<string, unknown>
 
@@ -53,7 +53,11 @@ export type XJComponent<T extends 'children' | 'slots' | null = null> =
         ) => Element
 
 export const isXJSlots = (
-  val: XJSlots | ((...args: unknown[]) => ChildrenElement) | XJChildrenNode,
+  val:
+    | XJSlots
+    // TODO: 不支持传入函数
+    // | ((...args: unknown[]) => ChildrenElement)
+    | XJChildrenNode,
 ): val is XJSlots => {
   return (
     isPlainObject(val) &&

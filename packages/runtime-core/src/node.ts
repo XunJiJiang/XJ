@@ -19,7 +19,7 @@ import {
   toLowerCase,
   // isKnownHtmlAttr,
   // isBooleanAttr,
-} from '@xj/shared'
+} from '@xj-fv/shared'
 
 import {
   type XJData,
@@ -30,7 +30,6 @@ import {
   type XJChildrenNode,
   type XJSlots,
   type XJComponent,
-  type ChildrenElement,
   isXJSlots,
   isXJChildrenNodeArr,
   isXJChildrenNode,
@@ -97,7 +96,8 @@ const _createComponent = (
   props: XJData | null,
   children:
     | XJChildrenNode
-    | ((...args: unknown[]) => ChildrenElement)
+    // TODO: 不支持传入函数
+    // | ((...args: unknown[]) => ChildrenElement)
     | XJSlots,
 ): Element => {
   const _props = {} as XJProp
@@ -139,14 +139,15 @@ const _createComponent = (
         children,
         reservedProps,
       )
-    } else if (isFunction(children)) {
-      return captureComponentReservedProp(
-        component,
-        _props,
-        _event,
-        children,
-        reservedProps,
-      )
+      // TODO: 不支持传入函数
+      // } else if (isFunction(children)) {
+      //   return captureComponentReservedProp(
+      //     component,
+      //     _props,
+      //     _event,
+      //     children,
+      //     reservedProps,
+      //   )
     } else {
       return captureComponentReservedProp(
         component,
@@ -258,7 +259,8 @@ const _createNode = (
   props: XJData | null,
   children:
     | XJChildrenNode
-    | ((...args: unknown[]) => ChildrenElement)
+    // TODO: 不支持传入函数
+    // | ((...args: unknown[]) => ChildrenElement)
     | XJSlots,
 ): Element => {
   if (isFunction(tag)) {
@@ -305,7 +307,8 @@ export const createNode = (
   props?: XJData | null,
   children?:
     | XJChildrenNode
-    | ((...args: unknown[]) => ChildrenElement)
+    // TODO: 不支持传入函数
+    // | ((...args: unknown[]) => ChildrenElement)
     | XJSlots,
 ): Element => {
   return _createNode(tag, props ?? {}, children ?? null)
@@ -316,7 +319,8 @@ export const h = (
   props?: XJData | null,
   children?:
     | XJChildrenNode
-    | ((...args: unknown[]) => ChildrenElement)
+    // TODO: 不支持传入函数
+    // | ((...args: unknown[]) => ChildrenElement)
     | XJSlots,
   ...childrenArr: XJChildNode[]
 ): Element => {
@@ -333,7 +337,5 @@ export const h = (
       ? children
       : [...(isArray(children) ? children : [children]), ..._flat(childrenArr)]
 
-  console.log(tag, children, childrenArr)
-  console.log(_children)
   return createNode(tag, props ?? {}, _children ?? null)
 }

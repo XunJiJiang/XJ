@@ -9,7 +9,7 @@ import {
   isElement,
   isHTMLElement,
   isNumber,
-} from '@xj/shared'
+} from '@xj-fv/shared'
 
 import {
   type XJComponent,
@@ -71,13 +71,13 @@ export const captureComponentReservedProp = (
   component: XJComponent,
   props: XJData,
   event: XJEvent,
-  children: ((...args: unknown[]) => ChildrenElement) | XJSlots,
+  children: XJSlots | ((...args: unknown[]) => ChildrenElement),
   reservedProps: Partial<ReservedProps> = {},
 ): Element => {
   const reservedPropKey = Object.keys(reservedProps) as ReservedPropKey[]
 
   if (reservedPropKey.includes('ref')) {
-    collectExpose.start()
+    collectExpose.start([component, children])
   }
 
   const el = component(props, event, children)

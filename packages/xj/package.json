@@ -27,9 +27,9 @@
   "author": "XunJiJiang",
   "license": "MIT",
   "dependencies": {
-    "@xj/shared": "workspace:^",
-    "@xj/runtime-core": "workspace:^",
-    "@xj/runtime-dom": "workspace:^",
+    "@xj-fv/shared": "workspace:^",
+    "@xj-fv/runtime-core": "workspace:^",
+    "@xj-fv/runtime-dom": "workspace:^",
     "reflect-metadata": "^0.2.2"
   }
 }

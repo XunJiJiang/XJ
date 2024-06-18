@@ -1,4 +1,4 @@
-import { extend } from '@xj/shared'
+import { extend } from '@xj-fv/shared'
 
 import { type XJData } from './component'
 
@@ -7,11 +7,13 @@ let exposeTemp: XJData[] = []
 let statue: 'start' | 'end' = 'start'
 
 export const collectExpose = {
-  start: () => {
+  start: (v: unknown) => {
+    console.log('start', v)
     statue = 'start'
   },
 
   end: (): XJData => {
+    console.log('end')
     statue = 'end'
     const exposeData = exposeTemp
     exposeTemp = []

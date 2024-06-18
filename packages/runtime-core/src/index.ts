@@ -1,5 +1,5 @@
 // import { createNode } from './node'
-import { isElement } from '@xj/shared'
+import { isElement } from '@xj-fv/shared'
 
 export const createRoot = (container: Element) => {
   if (!isElement(container)) {
