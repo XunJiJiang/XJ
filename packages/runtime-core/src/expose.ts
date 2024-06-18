@@ -8,21 +8,17 @@ const keyArr: string[] = []
 
 export type CollectExposeEnd = () => XJData
 
-export const collectExpose = {
-  start: (v: unknown) => {
-    const key = getUniqueKey('collectExposeEnd:#{key}:')
-    console.log('start', v)
-    keyArr.push(key)
+export const collectExpose = () => {
+  const key = getUniqueKey('collectExposeEnd:#{key}:')
+  keyArr.push(key)
 
-    return (): XJData => {
-      console.log('end')
-      keyArr.pop()
-      const exposeData = exposeTempMap.get(key) || []
-      exposeTempMap.delete(key)
+  return (): XJData => {
+    keyArr.pop()
+    const exposeData = exposeTempMap.get(key) || []
+    exposeTempMap.delete(key)
 
-      return extend({}, ...exposeData)
-    }
-  },
+    return extend({}, ...exposeData)
+  }
 }
 
 export const expose = (content: XJData) => {
