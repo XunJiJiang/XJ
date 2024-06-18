@@ -1,5 +1,5 @@
 // import { createNode } from './node'
-import { isElement } from '@xj/shared'
+import { isElement } from '@xj-view/shared'
 
 export const createRoot = (container: Element) => {
   if (!isElement(container)) {
@@ -8,6 +8,7 @@ export const createRoot = (container: Element) => {
     )
     throw new Error('Invalid root element')
   }
+
   const render = (rootComponent: Element): void => {
     container.appendChild(rootComponent)
   }

@@ -1,1 +1,1 @@
-# @xj/shared
+# @xj-view/shared

@@ -21,12 +21,18 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "xj"
+    "xj",
+    "xj-view"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/XunJiJiang/XJ"
+  },
+  "bugs": "https://github.com/XunJiJiang/XJ/issues",
   "author": "XunJiJiang",
   "license": "MIT",
   "dependencies": {
     "reflect-metadata": "^0.2.2",
-    "@xj/shared": "workspace:^"
+    "@xj-view/shared": "workspace:^"
   }
 }

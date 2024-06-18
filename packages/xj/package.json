@@ -1,5 +1,5 @@
 {
-  "name": "xj",
+  "name": "xj-view",
   "version": "0.0.1",
   "description": "A fast framework",
   "main": "./src/index.ts",
@@ -21,14 +21,19 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "xj"
+    "xj",
+    "xj-view"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/XunJiJiang/XJ"
+  },
+  "bugs": "https://github.com/XunJiJiang/XJ/issues",
   "author": "XunJiJiang",
   "license": "MIT",
   "dependencies": {
-    "@xj/shared": "workspace:^",
-    "@xj/runtime-core": "workspace:^",
-    "@xj/runtime-dom": "workspace:^",
+    "@xj-view/shared": "workspace:^",
+    "@xj-view/runtime-core": "workspace:^",
     "reflect-metadata": "^0.2.2"
   }
 }

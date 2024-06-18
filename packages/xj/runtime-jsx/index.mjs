@@ -1,4 +1,4 @@
-import { createNode, Fragment } from '@xj/runtime-core'
+import { createNode, Fragment } from '@xj-view/runtime-core'
 
 function jsx(type, props, key) {
   const { children } = props
