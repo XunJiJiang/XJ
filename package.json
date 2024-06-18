@@ -27,7 +27,8 @@
     "xj-clean": "./scripts/clean.js"
   },
   "keywords": [
-    "xj"
+    "xj",
+    "xj-view"
   ],
   "author": "XunJiJiang",
   "license": "MIT",

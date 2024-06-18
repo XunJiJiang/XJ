@@ -8,6 +8,7 @@ export const createRoot = (container: Element) => {
     )
     throw new Error('Invalid root element')
   }
+
   const render = (rootComponent: Element): void => {
     container.appendChild(rootComponent)
   }

@@ -34,7 +34,7 @@ Add the following content to the file.
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "xj": "workspace:^"
+    "xj-view": "workspace:^"
   }
 }
 ```
@@ -53,7 +53,7 @@ export default defineConfig({
   esbuild: {
     jsxFactory: '__jsx.h',
     jsxFragment: '__jsx.Fragment',
-    jsxInject: `import { __jsx } from 'xj'`,
+    jsxInject: `import { __jsx } from 'xj-view'`,
   },
 })
 ```
@@ -78,7 +78,7 @@ export default defineConfig({
 **main.jsx**
 
 ```jsx
-import { createRoot, expose } from 'xj'
+import { createRoot, expose } from 'xj-view'
 
 const app = createRoot(document.getElementById('main')).render(
   <h1>hello XJ</h1>,
