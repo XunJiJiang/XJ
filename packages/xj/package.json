@@ -1,5 +1,5 @@
 {
-  "name": "xj-view",
+  "name": "xj-fv",
   "version": "0.0.1",
   "description": "A fast framework",
   "main": "./src/index.ts",
@@ -22,7 +22,7 @@
   },
   "keywords": [
     "xj",
-    "xj-view"
+    "xj-fv"
   ],
   "repository": {
     "type": "git",
@@ -32,8 +32,8 @@
   "author": "XunJiJiang",
   "license": "MIT",
   "dependencies": {
-    "@xj-view/shared": "workspace:^",
-    "@xj-view/runtime-core": "workspace:^",
+    "@xj-fv/shared": "workspace:^",
+    "@xj-fv/runtime-core": "workspace:^",
     "reflect-metadata": "^0.2.2"
   }
 }

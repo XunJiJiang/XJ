@@ -1350,7 +1350,7 @@ type EventHandlers<E> = {
     : (payload: E[K]) => void
 }
 
-import type { XJData } from '@xj-view/runtime-core'
+import type { XJData } from '@xj-fv/runtime-core'
 
 export type ReservedProps = {
   key?: string | number

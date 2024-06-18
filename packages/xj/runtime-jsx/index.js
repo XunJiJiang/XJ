@@ -1,4 +1,4 @@
-const { createNode, Fragment } = require('@xj-view/runtime-core')
+const { createNode, Fragment } = require('@xj-fv/runtime-core')
 
 function jsx(type, props, key) {
   const { children } = props

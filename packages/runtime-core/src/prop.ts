@@ -9,7 +9,7 @@ import {
   isElement,
   isHTMLElement,
   isNumber,
-} from '@xj-view/shared'
+} from '@xj-fv/shared'
 
 import {
   type XJComponent,

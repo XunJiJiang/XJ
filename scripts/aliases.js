@@ -18,8 +18,8 @@ const dirs = readdirSync(new URL('../packages', import.meta.url))
 const entries = {
   xj: resolveEntryForPkg('xj'),
   // '@xj/types': resolveTypesEntryForPkg('xj'),
-  // '@xj-view/shared': resolveEntryForPkg('shared'),
-  // '@xj-view/shared/types': resolveTypesEntryForPkg('shared'),
+  // '@xj-fv/shared': resolveEntryForPkg('shared'),
+  // '@xj-fv/shared/types': resolveTypesEntryForPkg('shared'),
 }
 
 const nonSrcPackages = []

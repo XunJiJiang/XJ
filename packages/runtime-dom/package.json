@@ -22,7 +22,7 @@
   },
   "keywords": [
     "xj",
-    "xj-view"
+    "xj-fv"
   ],
   "repository": {
     "type": "git",
@@ -33,6 +33,6 @@
   "license": "MIT",
   "dependencies": {
     "reflect-metadata": "^0.2.2",
-    "@xj-view/shared": "workspace:^"
+    "@xj-fv/shared": "workspace:^"
   }
 }

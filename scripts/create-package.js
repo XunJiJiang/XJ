@@ -34,7 +34,7 @@ function createPackage(packageName, authorName, dependencies) {
     scripts: {
       test: 'echo "Error: no test specified" && exit 1',
     },
-    keywords: ['xj', 'xj-view'],
+    keywords: ['xj', 'xj-fv'],
     author: authorName,
     license: 'MIT',
     dependencies,

@@ -34,7 +34,7 @@ build指令依赖于[`tsc`](https://www.typescriptlang.org/docs/handbook/compile
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "xj-view": "workspace:^"
+    "xj-fv": "workspace:^"
   }
 }
 ```
@@ -53,7 +53,7 @@ export default defineConfig({
   esbuild: {
     jsxFactory: '__jsx.h',
     jsxFragment: '__jsx.Fragment',
-    jsxInject: `import { __jsx } from 'xj-view'`,
+    jsxInject: `import { __jsx } from 'xj-fv'`,
   },
 })
 ```
@@ -78,7 +78,7 @@ export default defineConfig({
 **main.jsx**
 
 ```jsx
-import { createRoot, expose } from 'xj-view'
+import { createRoot, expose } from 'xj-fv'
 
 const app = createRoot(document.getElementById('main')).render(
   <h1>hello XJ</h1>,

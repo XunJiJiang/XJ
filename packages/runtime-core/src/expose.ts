@@ -1,4 +1,4 @@
-import { extend } from '@xj-view/shared'
+import { extend } from '@xj-fv/shared'
 
 import { type XJData } from './component'
 

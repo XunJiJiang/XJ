@@ -1,4 +1,4 @@
-// import { shared } from '@xj-view/shared';
+// import { shared } from '@xj-fv/shared';
 import 'reflect-metadata'
 import {
   createNode,
@@ -6,7 +6,7 @@ import {
   createRoot,
   expose,
   h,
-} from '@xj-view/runtime-core'
+} from '@xj-fv/runtime-core'
 
 const xj = {
   createNode,
@@ -27,6 +27,6 @@ export {
   createRoot,
   expose,
   h,
-} from '@xj-view/runtime-core'
+} from '@xj-fv/runtime-core'
 
 export default xj
