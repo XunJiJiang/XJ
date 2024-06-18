@@ -1,4 +1,4 @@
-import type { ReservedProps } from '@xj/runtime-core'
+import type { ReservedProps } from '@xj-view/runtime-core'
 import type { NativeElements } from './jsx'
 
 /**
@@ -10,7 +10,7 @@ export {
   createNode as jsx,
   createNode as jsxDEV,
   Fragment,
-} from '@xj/runtime-core'
+} from '@xj-view/runtime-core'
 
 export namespace JSX {
   export interface ElementClass {

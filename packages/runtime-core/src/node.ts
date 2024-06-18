@@ -19,7 +19,7 @@ import {
   toLowerCase,
   // isKnownHtmlAttr,
   // isBooleanAttr,
-} from '@xj/shared'
+} from '@xj-view/shared'
 
 import {
   type XJData,

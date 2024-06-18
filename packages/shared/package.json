@@ -1,5 +1,5 @@
 {
-  "name": "@xj/shared",
+  "name": "@xj-view/shared",
   "version": "0.0.1",
   "description": "The shared of the fast framework xj",
   "main": "./src/index.ts",
@@ -24,6 +24,11 @@
     "xj",
     "xj-view"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/XunJiJiang/XJ"
+  },
+  "bugs": "https://github.com/XunJiJiang/XJ/issues",
   "author": "XunJiJiang",
   "license": "MIT"
 }

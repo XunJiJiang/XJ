@@ -8,7 +8,7 @@ import {
   isBoolean,
   isElement,
   isFunction,
-} from '@xj/shared'
+} from '@xj-view/shared'
 
 export type XJData = Record<string, unknown>
 
