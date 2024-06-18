@@ -19,7 +19,7 @@ import {
   type XJNodeTypes,
 } from './component'
 
-import { type CollectExposeEnd, collectExpose } from './expose'
+import { collectExpose } from './expose'
 
 export type ReservedProps = Record<ReservedPropKey, unknown>
 
