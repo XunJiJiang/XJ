@@ -1,4 +1,4 @@
-type Template = `${string | never}#{key}${string | never}`
+type Template = `${string}#{key}${string}`
 
 const templateMap = new Map<string, number>()
 

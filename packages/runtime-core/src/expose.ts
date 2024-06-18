@@ -1,29 +1,32 @@
-import { extend } from '@xj-fv/shared'
+import { extend, getUniqueKey } from '@xj-fv/shared'
 
 import { type XJData } from './component'
 
-let exposeTemp: XJData[] = []
+const exposeTempMap = new Map<string, XJData[]>()
 
-let statue: 'start' | 'end' = 'start'
+const keyArr: string[] = []
+
+export type CollectExposeEnd = () => XJData
 
 export const collectExpose = {
   start: (v: unknown) => {
+    const key = getUniqueKey('collectExposeEnd:#{key}:')
     console.log('start', v)
-    statue = 'start'
-  },
+    keyArr.push(key)
 
-  end: (): XJData => {
-    console.log('end')
-    statue = 'end'
-    const exposeData = exposeTemp
-    exposeTemp = []
+    return (): XJData => {
+      console.log('end')
+      keyArr.pop()
+      const exposeData = exposeTempMap.get(key) || []
+      exposeTempMap.delete(key)
 
-    return extend({}, ...exposeData)
+      return extend({}, ...exposeData)
+    }
   },
 }
 
 export const expose = (content: XJData) => {
-  if (statue === 'start') {
-    exposeTemp.push(content)
-  }
+  const key = keyArr[keyArr.length - 1]
+  const exposeData = exposeTempMap.get(key) || []
+  exposeTempMap.set(key, [...exposeData, content])
 }
