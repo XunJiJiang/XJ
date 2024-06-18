@@ -30,7 +30,8 @@ import {
   type XJChildrenNode,
   type XJSlots,
   type XJComponent,
-  type ChildrenElement,
+  // TODO: wait then delete
+  // type ChildrenElement,
   isXJSlots,
   isXJChildrenNodeArr,
   isXJChildrenNode,
@@ -97,7 +98,8 @@ const _createComponent = (
   props: XJData | null,
   children:
     | XJChildrenNode
-    | ((...args: unknown[]) => ChildrenElement)
+    // TODO: wait then delete
+    // | ((...args: unknown[]) => ChildrenElement)
     | XJSlots,
 ): Element => {
   const _props = {} as XJProp
@@ -139,14 +141,15 @@ const _createComponent = (
         children,
         reservedProps,
       )
-    } else if (isFunction(children)) {
-      return captureComponentReservedProp(
-        component,
-        _props,
-        _event,
-        children,
-        reservedProps,
-      )
+      // TODO: wait then delete
+      // } else if (isFunction(children)) {
+      //   return captureComponentReservedProp(
+      //     component,
+      //     _props,
+      //     _event,
+      //     children,
+      //     reservedProps,
+      //   )
     } else {
       return captureComponentReservedProp(
         component,
@@ -258,7 +261,8 @@ const _createNode = (
   props: XJData | null,
   children:
     | XJChildrenNode
-    | ((...args: unknown[]) => ChildrenElement)
+    // TODO: wait then delete
+    // | ((...args: unknown[]) => ChildrenElement)
     | XJSlots,
 ): Element => {
   if (isFunction(tag)) {
@@ -305,7 +309,7 @@ export const createNode = (
   props?: XJData | null,
   children?:
     | XJChildrenNode
-    | ((...args: unknown[]) => ChildrenElement)
+    // | ((...args: unknown[]) => ChildrenElement)
     | XJSlots,
 ): Element => {
   return _createNode(tag, props ?? {}, children ?? null)
@@ -316,7 +320,7 @@ export const h = (
   props?: XJData | null,
   children?:
     | XJChildrenNode
-    | ((...args: unknown[]) => ChildrenElement)
+    // | ((...args: unknown[]) => ChildrenElement)
     | XJSlots,
   ...childrenArr: XJChildNode[]
 ): Element => {
@@ -328,12 +332,11 @@ export const h = (
     return _flat(_array)
   }
   const _children = isXJSlots(children)
-    ? children
-    : isFunction(children)
-      ? children
-      : [...(isArray(children) ? children : [children]), ..._flat(childrenArr)]
+    ? // TODO: wait then delete
+      // ? children
+      // : isFunction(children)
+      children
+    : [...(isArray(children) ? children : [children]), ..._flat(childrenArr)]
 
-  console.log(tag, children, childrenArr)
-  console.log(_children)
   return createNode(tag, props ?? {}, _children ?? null)
 }
