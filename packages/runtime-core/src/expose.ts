@@ -6,17 +6,19 @@ let exposeTemp: XJData[] = []
 
 let statue: 'start' | 'end' = 'start'
 
+export type XJExpose = XJData
+
 export const collectExpose = {
   start: () => {
     statue = 'start'
-  },
 
-  end: (): XJData => {
-    statue = 'end'
-    const exposeData = exposeTemp
-    exposeTemp = []
+    return (): XJData => {
+      statue = 'end'
+      const exposeData = exposeTemp
+      exposeTemp = []
 
-    return extend({}, ...exposeData)
+      return extend({}, ...exposeData)
+    }
   },
 }
 
