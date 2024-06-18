@@ -19,7 +19,7 @@ import {
   type ChildrenElement,
 } from './component'
 
-import { type CollectExposeEnd, collectExpose } from './expose'
+import { collectExpose } from './expose'
 
 export type ReservedProps = Record<ReservedPropKey, unknown>
 
@@ -76,24 +76,18 @@ export const captureComponentReservedProp = (
 ): Element => {
   const reservedPropKey = Object.keys(reservedProps) as ReservedPropKey[]
 
-  let collectExposeEnd: CollectExposeEnd | null = null
-
-  if (reservedPropKey.includes('ref')) {
-    collectExposeEnd = collectExpose.start([component, children])
-  }
+  const collectExposeEnd = collectExpose()
 
   const el = component(props, event, children)
 
-  if (collectExposeEnd) {
-    const ref = reservedProps.ref
-    const expose = collectExposeEnd()
-    if (isFunction(ref)) {
-      ref(expose)
-    }
+  const ref = reservedPropKey.includes('ref') ? reservedProps.ref : undefined
+  const expose = collectExposeEnd()
+  if (isFunction(ref)) {
+    ref(expose)
+  }
 
-    if (isPlainObject(ref) && 'current' in ref) {
-      ref.current = expose
-    }
+  if (isPlainObject(ref) && 'current' in ref) {
+    ref.current = expose
   }
 
   return el

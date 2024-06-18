@@ -15,9 +15,9 @@ export default {
     [
       '@babel/plugin-transform-react-jsx',
       {
-        pragma: 'Xj.h', // default pragma is React.createElement
-        pragmaFrag: 'Xj.Fragment', // default is React.Fragment
-        throwIfNamespace: false, // defaults to true
+        pragma: '__jsx.h',
+        pragmaFrag: '__jsx.Fragment',
+        throwIfNamespace: false,
       },
     ],
   ],
