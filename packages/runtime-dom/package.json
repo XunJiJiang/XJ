@@ -1,12 +1,13 @@
 {
   "name": "@xj/runtime-dom",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "The runtime-dom of the fast framework xj",
   "main": "./src/index.ts",
   "module": "./src/index.ts",
   "types": "./dist/runtime-dom.d.ts",
   "files": [
     "dist",
+    "src",
     "README.md",
     "LICENSE"
   ],
