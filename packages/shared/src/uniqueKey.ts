@@ -1,8 +1,12 @@
-type Template = `${string}#{key}${string}`
+export type UniqueKeyTemplate = `${string}#{key}${string}`
 
 const templateMap = new Map<string, number>()
 
-export const getUniqueKey = (template: Template = '__:#{key}:__'): string => {
+export const defaultUniqueKeyTemplate = '__:#{key}:__'
+
+export const getUniqueKey = (
+  template: UniqueKeyTemplate = defaultUniqueKeyTemplate,
+): string => {
   if (templateMap.has(template)) {
     const count = templateMap.get(template) as number
     templateMap.set(template, count + 1)
