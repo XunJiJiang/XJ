@@ -10,14 +10,6 @@ import {
   isFunction,
 } from '@xj-fv/shared'
 
-// export type XJNodeContextTree = Array<{
-//   type: 'element' | 'text'
-//   tag: string | undefined
-//   component: XJComponent
-//   props: XJData
-//   children: XJNodeContextTree
-// }>
-
 export type XJData = Record<string, unknown>
 
 export type XJEventKey = `on${string}` | `$${string}`
