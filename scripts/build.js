@@ -1,5 +1,4 @@
 // @ts-check
-// import ts from 'typescript';
 import path, { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';

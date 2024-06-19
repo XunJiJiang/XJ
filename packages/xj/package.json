@@ -1,6 +1,6 @@
 {
   "name": "xj-fv",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A fast framework",
   "main": "./src/index.ts",
   "module": "./src/index.ts",
