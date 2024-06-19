@@ -9,14 +9,14 @@ import {
   isElement,
   isHTMLElement,
   isNumber,
-} from '@xj/shared'
+} from '@xj-fv/shared'
 
 import {
   type XJComponent,
   type XJData,
   type XJEvent,
   type XJSlots,
-  type ChildrenElement,
+  type XJNodeTypes,
 } from './component'
 
 import { collectExpose } from './expose'
@@ -71,27 +71,25 @@ export const captureComponentReservedProp = (
   component: XJComponent,
   props: XJData,
   event: XJEvent,
-  children: ((...args: unknown[]) => ChildrenElement) | XJSlots,
+  children: XJSlots | ((...args: unknown[]) => XJNodeTypes),
   reservedProps: Partial<ReservedProps> = {},
-): Element => {
+): XJNodeTypes => {
   const reservedPropKey = Object.keys(reservedProps) as ReservedPropKey[]
 
-  if (reservedPropKey.includes('ref')) {
-    collectExpose.start()
-  }
+  const collectExposeEnd = collectExpose()
 
   const el = component(props, event, children)
 
-  if (reservedPropKey.includes('ref')) {
-    const ref = reservedProps.ref
-    const expose = collectExpose.end()
-    if (isFunction(ref)) {
-      ref(expose)
-    }
+  const ref = reservedPropKey.includes('ref') ? reservedProps.ref : undefined
 
-    if (isPlainObject(ref) && 'current' in ref) {
-      ref.current = expose
-    }
+  const expose = collectExposeEnd()
+
+  if (isFunction(ref)) {
+    ref(expose)
+  }
+
+  if (isPlainObject(ref) && 'current' in ref) {
+    ref.current = expose
   }
 
   return el

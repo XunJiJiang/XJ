@@ -8,7 +8,7 @@ import {
   isBoolean,
   isElement,
   isFunction,
-} from '@xj/shared'
+} from '@xj-fv/shared'
 
 export type XJData = Record<string, unknown>
 
@@ -35,26 +35,28 @@ export type XJChildrenNode = XJChildNode | XJChildNode[]
 
 export type XJSlots = Record<string, (...args: unknown[]) => XJChildrenNode>
 
-export type ChildrenElement = Element | Text | (Element | Text)[]
+export type XJNodeTypes = Element | Text | (Element | Text)[]
 
 export type XJComponent<T extends 'children' | 'slots' | null = null> =
   T extends 'children'
     ? (
         props: XJData,
         event: XJEvent,
-        children?: () => ChildrenElement,
-      ) => Element
+        children?: () => XJNodeTypes,
+      ) => XJNodeTypes
     : T extends 'slots'
-      ? (props: XJData, event: XJEvent, slots?: XJSlots) => Element
+      ? (props: XJData, event: XJEvent, slots?: XJSlots) => XJNodeTypes
       : (
           props: XJData,
           event: XJEvent,
-          children?: (() => ChildrenElement) | XJSlots,
-        ) => Element
+          children?: (() => XJNodeTypes) | XJSlots,
+        ) => XJNodeTypes
 
-export const isXJSlots = (
-  val: XJSlots | ((...args: unknown[]) => ChildrenElement) | XJChildrenNode,
-): val is XJSlots => {
+export const Fragment = Symbol.for('x-fgt') as unknown as {
+  __isFragment: true
+}
+
+export const isXJSlots = (val: XJSlots | XJChildrenNode): val is XJSlots => {
   return (
     isPlainObject(val) &&
     !isText(val) &&

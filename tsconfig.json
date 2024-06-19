@@ -19,7 +19,7 @@
     "types": ["node"],
     "paths": {
       "xj": ["packages/xj/src/index.ts"],
-      "@xj/*": ["packages/*/src/index.ts"]
+      "@xj-fv/*": ["packages/*/src/index.ts"]
     },
 
     "experimentalDecorators": true,

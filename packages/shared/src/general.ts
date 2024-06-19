@@ -74,6 +74,9 @@ export const isPromise = <T = unknown>(val: unknown): val is Promise<T> => {
 export const isPlainObject = (val: unknown): val is object =>
   toTypeString(val) === '[object Object]'
 
+export const isEmptyObject = (val: unknown): val is object =>
+  isPlainObject(val) && Object.keys(val).length === 0
+
 export const isIntegerKey = (key: unknown) =>
   isString(key) &&
   key !== 'NaN' &&
