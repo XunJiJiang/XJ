@@ -17,6 +17,7 @@ import {
   isReservedProp,
   isSpecialNativeProp,
   toLowerCase,
+  isEmptyObject,
   // isKnownHtmlAttr,
   // isBooleanAttr,
 } from '@xj-fv/shared'
@@ -30,9 +31,11 @@ import {
   type XJChildrenNode,
   type XJSlots,
   type XJComponent,
+  type XJNodeTypes,
   isXJSlots,
   isXJChildrenNodeArr,
   isXJChildrenNode,
+  Fragment,
 } from './component'
 
 import { nodeOps } from './nodeOps'
@@ -43,13 +46,6 @@ import {
   setSpecialNativeProp,
   captureComponentReservedProp,
 } from './prop'
-
-export const Fragment = Symbol.for('x-fgt') as unknown as {
-  __isFragment: true // 标识符，表示这是一个 Fragment
-  new (): {
-    $props: XJData // 构造函数签名，表示实例对象有 $props 属性
-  }
-}
 
 const elementalizingXJChildrenNode = (
   children: XJChildrenNode,
@@ -94,12 +90,8 @@ const elementalizingXJChildrenNode = (
 const _createComponent = (
   component: XJComponent,
   props: XJData | null,
-  children:
-    | XJChildrenNode
-    // TODO: 不支持传入函数
-    // | ((...args: unknown[]) => ChildrenElement)
-    | XJSlots,
-): Element => {
+  children: XJChildrenNode | XJSlots,
+): XJNodeTypes => {
   const _props = {} as XJProp
   const _event = {} as XJEvent
 
@@ -139,32 +131,21 @@ const _createComponent = (
         children,
         reservedProps,
       )
-      // TODO: 不支持传入函数
-      // } else if (isFunction(children)) {
-      //   return captureComponentReservedProp(
-      //     component,
-      //     _props,
-      //     _event,
-      //     children,
-      //     reservedProps,
-      //   )
-    } else {
+    } else if (isXJChildrenNode(children)) {
       return captureComponentReservedProp(
         component,
         _props,
         _event,
         () => {
-          if (isXJChildrenNode(children)) {
-            return elementalizingXJChildrenNode(children)
-          }
-
-          /*#__PURE__*/ console.log(
-            `runtime-core -> src -> node.ts -> _createComponent -> children: ${children}`,
-          )
-          throw new Error(`Invalid children: ${children}`)
+          return elementalizingXJChildrenNode(children)
         },
         reservedProps,
       )
+    } else {
+      /*#__PURE__*/ console.log(
+        `runtime-core -> src -> node.ts -> _createComponent -> children: ${children}`,
+      )
+      throw new Error(`Invalid children: ${children}`)
     }
   } else {
     return component(_props, _event)
@@ -255,16 +236,41 @@ const _createMATS = (
 }
 
 const _createNode = (
-  tag: string | XJComponent,
+  tag: string | XJComponent | typeof Fragment,
   props: XJData | null,
-  children:
-    | XJChildrenNode
-    // TODO: 不支持传入函数
-    // | ((...args: unknown[]) => ChildrenElement)
-    | XJSlots,
-): Element => {
+  children: XJChildrenNode | XJSlots,
+): XJNodeTypes => {
   if (isFunction(tag)) {
     return _createComponent(tag as XJComponent, props, children)
+  } else if (tag === Fragment) {
+    const fragment: XJComponent = (props, _, children) => {
+      if (!isFunction(children) && isXJSlots(children)) {
+        /*#__PURE__*/ console.log(
+          `runtime-core -> src -> node.ts -> _createNode -> children: ${children}`,
+        )
+        throw new Error(`Fragment should not have slots`)
+      }
+      if (props && !isEmptyObject(props)) {
+        /*#__PURE__*/ console.log(
+          `runtime-core -> src -> node.ts -> _createNode -> props: ${props}`,
+        )
+        throw new Error(`Fragment should not have props`)
+      }
+      return isFunction(children) ? children() : []
+    }
+    if (children) {
+      if (isXJChildrenNode(children)) {
+        const _children = elementalizingXJChildrenNode(children)
+        return _createComponent(fragment, {}, _children)
+      } else {
+        /*#__PURE__*/ console.log(
+          `runtime-core -> src -> node.ts -> _createNode -> children: ${children}`,
+        )
+        throw new Error(`Invalid children: ${children}`)
+      }
+    } else {
+      return _createComponent(fragment, {}, [])
+    }
   } else if (!isString(tag)) {
     throw new Error(`Invalid tag: ${tag}`)
   }
@@ -303,27 +309,19 @@ const _createNode = (
 }
 
 export const createNode = (
-  tag: string | XJComponent,
+  tag: string | XJComponent | typeof Fragment,
   props?: XJData | null,
-  children?:
-    | XJChildrenNode
-    // TODO: 不支持传入函数
-    // | ((...args: unknown[]) => ChildrenElement)
-    | XJSlots,
-): Element => {
+  children?: XJChildrenNode | XJSlots,
+): XJNodeTypes => {
   return _createNode(tag, props ?? {}, children ?? null)
 }
 
 export const h = (
-  tag: string | XJComponent,
+  tag: string | XJComponent | typeof Fragment,
   props?: XJData | null,
-  children?:
-    | XJChildrenNode
-    // TODO: 不支持传入函数
-    // | ((...args: unknown[]) => ChildrenElement)
-    | XJSlots,
+  children?: XJChildrenNode | XJSlots,
   ...childrenArr: XJChildNode[]
-): Element => {
+): XJNodeTypes => {
   function _flat(array: XJChildNode[]): XJChildNode[] {
     if (array.every(val => !isArray(val))) {
       return array
