@@ -1,7 +1,7 @@
 // @ts-check
-import figlet from 'figlet';
-import chalk from 'chalk';
-import gradient from 'gradient-string';
+import figlet from 'figlet'
+import chalk from 'chalk'
+import gradient from 'gradient-string'
 
 /**
  * @typedef CslLog
@@ -41,7 +41,7 @@ import gradient from 'gradient-string';
  * @param  {...any} msgs
  */
 function csl(...msgs) {
-  csl.log(...msgs);
+  csl.log(...msgs)
 }
 
 /**
@@ -49,8 +49,8 @@ function csl(...msgs) {
  * @param {...any} msgs
  */
 csl.log = (...msgs) => {
-  console.log(...msgs);
-};
+  console.log(...msgs)
+}
 
 /**
  * 创建颜色
@@ -59,16 +59,16 @@ csl.log = (...msgs) => {
  */
 csl.createColor = colors => {
   if (typeof colors === 'string') {
-    return chalk[colors];
+    return chalk[colors]
   } else if (Array.isArray(colors)) {
-    return gradient(colors);
+    return gradient(colors)
   } else {
     return gradient([
       { color: 'cyan', pos: 0 },
       { color: 'pink', pos: 0.9 },
-    ]);
+    ])
   }
-};
+}
 
 /**
  * 控制台输出标题
@@ -76,10 +76,10 @@ csl.createColor = colors => {
  * @param {string | Array} colors
  */
 csl.title = (title = 'Hello World', colors) => {
-  const titleGradient = csl.createColor(colors);
-  const msg = figlet.textSync(title);
-  csl(titleGradient(msg));
-};
+  const titleGradient = csl.createColor(colors)
+  const msg = figlet.textSync(title)
+  csl(titleGradient(msg))
+}
 
 // 对勾图标： \u2714
 // 叉号图标： \u2718
@@ -89,20 +89,20 @@ csl.title = (title = 'Hello World', colors) => {
 // 叹号图标： \u2757
 
 csl.error = (message = 'Hello World', ...msgs) => {
-  csl(chalk.red('\u2718 ', message, ...msgs));
-};
+  csl(chalk.bgRed(chalk.white('\u2718 ERROR ')), chalk.red(message, ...msgs))
+}
 
 csl.warn = (message = 'Hello World', ...msgs) => {
-  csl(chalk.yellow('! ', message, ...msgs));
-};
+  csl(chalk.bgYellow(chalk.white('! WARN ')), chalk.yellow(message, ...msgs))
+}
 
 csl.info = (message = 'Hello World', ...msgs) => {
-  csl(chalk.cyan('\u2170 ', message, ...msgs));
-};
+  csl(chalk.cyan('\u2170 ', message, ...msgs))
+}
 
 csl.success = (message = 'Hello World', ...msgs) => {
-  csl(chalk.green('\u2713 ', message, ...msgs));
-};
+  csl(chalk.green('\u2713 ', message, ...msgs))
+}
 
 /**
  *
@@ -111,9 +111,9 @@ csl.success = (message = 'Hello World', ...msgs) => {
  * @returns
  */
 csl.color = (message, colors) => {
-  const color = csl.createColor(colors);
-  csl(color(message));
-};
+  const color = csl.createColor(colors)
+  csl(color(message))
+}
 
 /**
  * _csl上的公共方法
@@ -127,7 +127,7 @@ const cslFunc = [
   'success',
   'color',
   'createColor',
-];
+]
 
 /** @typedef {import('chalk').ChalkInstance} ChalkInstance */
 /** @typedef {import('chalk').ColorName} ColorName */
@@ -153,35 +153,35 @@ const _csl = (() => {
    */
   return new Proxy(csl, {
     apply(target, thisArg, args) {
-      return target(...args);
+      return target(...args)
     },
     get(target, prop, receiver) {
       if (typeof prop === 'symbol') {
         // symbol属性. 返回 target[prop]
-        return target[prop];
+        return target[prop]
       }
 
       if (cslFunc.includes(prop)) {
         // target[prop] 存在. 返回 target[prop]
-        return target[prop];
+        return target[prop]
       } else if (chalk[prop]) {
         // chalk[prop] 存在. 返回一个调用了chalk[prop]的函数
         /**
          * @param  {string[]} args
          */
-        return (...args) => target(chalk[prop](...args));
+        return (...args) => target(chalk[prop](...args))
       } else if (
         prop.startsWith('create') &&
         chalk[prop.slice(6).toLowerCase()]
       ) {
         // chalk[prop] 存在. 返回一个调用了chalk[prop]的函数
-        return chalk[prop.slice(6).toLowerCase()];
+        return chalk[prop.slice(6).toLowerCase()]
       } else {
         // 其他情况. 返回 target
-        return target;
+        return target
       }
     },
-  });
-})();
+  })
+})()
 
-export default _csl;
+export default _csl
