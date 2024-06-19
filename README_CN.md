@@ -34,7 +34,7 @@ build指令依赖于[`tsc`](https://www.typescriptlang.org/docs/handbook/compile
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "xj": "workspace:^"
+    "xj": "workspace:*"
   }
 }
 ```

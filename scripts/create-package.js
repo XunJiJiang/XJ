@@ -223,7 +223,7 @@ async function createOptionsOfChooseDependencies() {
   for (const pkg of existingPackageNames) {
     options.push({
       name: pkg,
-      value: `["${pkg}", "workspace:^"]`,
+      value: `["${pkg}", "workspace:*"]`,
     })
   }
   return options
