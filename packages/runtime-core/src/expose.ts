@@ -14,7 +14,9 @@ export const collectExpose = () => {
 
   return (): XJData => {
     keyArr.pop()
+
     const exposeData = exposeTempMap.get(key) || []
+
     exposeTempMap.delete(key)
 
     return extend({}, ...exposeData)
