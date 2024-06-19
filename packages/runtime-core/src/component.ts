@@ -10,6 +10,14 @@ import {
   isFunction,
 } from '@xj-fv/shared'
 
+// export type XJNodeContextTree = Array<{
+//   type: 'element' | 'text'
+//   tag: string | undefined
+//   component: XJComponent
+//   props: XJData
+//   children: XJNodeContextTree
+// }>
+
 export type XJData = Record<string, unknown>
 
 export type XJEventKey = `on${string}` | `$${string}`
@@ -52,13 +60,7 @@ export type XJComponent<T extends 'children' | 'slots' | null = null> =
           children?: (() => ChildrenElement) | XJSlots,
         ) => Element
 
-export const isXJSlots = (
-  val:
-    | XJSlots
-    // TODO: 不支持传入函数
-    // | ((...args: unknown[]) => ChildrenElement)
-    | XJChildrenNode,
-): val is XJSlots => {
+export const isXJSlots = (val: XJSlots | XJChildrenNode): val is XJSlots => {
   return (
     isPlainObject(val) &&
     !isText(val) &&

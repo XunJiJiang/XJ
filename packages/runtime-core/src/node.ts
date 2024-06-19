@@ -94,11 +94,7 @@ const elementalizingXJChildrenNode = (
 const _createComponent = (
   component: XJComponent,
   props: XJData | null,
-  children:
-    | XJChildrenNode
-    // TODO: 不支持传入函数
-    // | ((...args: unknown[]) => ChildrenElement)
-    | XJSlots,
+  children: XJChildrenNode | XJSlots,
 ): Element => {
   const _props = {} as XJProp
   const _event = {} as XJEvent
@@ -139,15 +135,6 @@ const _createComponent = (
         children,
         reservedProps,
       )
-      // TODO: 不支持传入函数
-      // } else if (isFunction(children)) {
-      //   return captureComponentReservedProp(
-      //     component,
-      //     _props,
-      //     _event,
-      //     children,
-      //     reservedProps,
-      //   )
     } else {
       return captureComponentReservedProp(
         component,
@@ -257,11 +244,7 @@ const _createMATS = (
 const _createNode = (
   tag: string | XJComponent,
   props: XJData | null,
-  children:
-    | XJChildrenNode
-    // TODO: 不支持传入函数
-    // | ((...args: unknown[]) => ChildrenElement)
-    | XJSlots,
+  children: XJChildrenNode | XJSlots,
 ): Element => {
   if (isFunction(tag)) {
     return _createComponent(tag as XJComponent, props, children)
@@ -305,11 +288,7 @@ const _createNode = (
 export const createNode = (
   tag: string | XJComponent,
   props?: XJData | null,
-  children?:
-    | XJChildrenNode
-    // TODO: 不支持传入函数
-    // | ((...args: unknown[]) => ChildrenElement)
-    | XJSlots,
+  children?: XJChildrenNode | XJSlots,
 ): Element => {
   return _createNode(tag, props ?? {}, children ?? null)
 }
@@ -317,11 +296,7 @@ export const createNode = (
 export const h = (
   tag: string | XJComponent,
   props?: XJData | null,
-  children?:
-    | XJChildrenNode
-    // TODO: 不支持传入函数
-    // | ((...args: unknown[]) => ChildrenElement)
-    | XJSlots,
+  children?: XJChildrenNode | XJSlots,
   ...childrenArr: XJChildNode[]
 ): Element => {
   function _flat(array: XJChildNode[]): XJChildNode[] {
