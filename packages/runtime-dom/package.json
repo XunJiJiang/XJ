@@ -1,6 +1,6 @@
 {
   "name": "@xj-fv/runtime-dom",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "The runtime-dom of the fast framework xj",
   "main": "./src/index.ts",
   "module": "./src/index.ts",
@@ -28,6 +28,6 @@
   "license": "MIT",
   "dependencies": {
     "reflect-metadata": "^0.2.2",
-    "@xj-fv/shared": "workspace:^"
+    "@xj-fv/shared": "workspace:*"
   }
 }

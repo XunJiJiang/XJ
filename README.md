@@ -34,7 +34,7 @@ Add the following content to the file.
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "xj": "workspace:^"
+    "xj": "workspace:*"
   }
 }
 ```
