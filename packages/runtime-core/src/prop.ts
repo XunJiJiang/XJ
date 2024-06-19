@@ -16,7 +16,7 @@ import {
   type XJData,
   type XJEvent,
   type XJSlots,
-  type ChildrenElement,
+  type XJNodeTypes,
 } from './component'
 
 import { collectExpose } from './expose'
@@ -71,9 +71,9 @@ export const captureComponentReservedProp = (
   component: XJComponent,
   props: XJData,
   event: XJEvent,
-  children: XJSlots | ((...args: unknown[]) => ChildrenElement),
+  children: XJSlots | ((...args: unknown[]) => XJNodeTypes),
   reservedProps: Partial<ReservedProps> = {},
-): Element => {
+): XJNodeTypes => {
   const reservedPropKey = Object.keys(reservedProps) as ReservedPropKey[]
 
   const collectExposeEnd = collectExpose()
@@ -81,7 +81,9 @@ export const captureComponentReservedProp = (
   const el = component(props, event, children)
 
   const ref = reservedPropKey.includes('ref') ? reservedProps.ref : undefined
+
   const expose = collectExposeEnd()
+
   if (isFunction(ref)) {
     ref(expose)
   }
