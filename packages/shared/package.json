@@ -1,29 +1,38 @@
 {
   "name": "@xj-fv/shared",
-  "version": "0.0.4",
-  "description": "The shared of the fast framework xj",
-  "main": "./src/index.ts",
-  "module": "./src/index.ts",
-  "types": "./dist/shared.d.ts",
+  "version": "0.0.6",
+  "description": "Shared utilities and components for the XJ library",
+  "main": "index.ts",
+  "module": "dist/index.esm-bundler.js",
+  "types": "dist/types/index.d.ts",
   "files": [
     "dist",
     "src",
-    "README.md",
-    "LICENSE"
+    "!src/**/*.test.ts",
+    "index.ts",
+    "env.d.ts",
+    "license"
   ],
   "exports": {
     ".": {
-      "import": "./src/index.ts",
-      "types": "./dist/shared.d.ts"
-    },
-    "./package.json": "./package.json"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+      "import": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/index.esm-bundler.js"
+      },
+      "require": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/index.cjs.js"
+      }
+    }
   },
   "keywords": [
     "xj"
   ],
   "author": "XunJiJiang",
-  "license": "MIT"
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/XunJiJiang/XJ/issues"
+  },
+  "homepage": "https://github.com/XunJiJiang/XJ#readme",
+  "dependencies": {}
 }

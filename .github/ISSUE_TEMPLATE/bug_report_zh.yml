@@ -1,0 +1,72 @@
+name: BUG 提交
+description: 创建报告以帮助我们改进
+labels: [bug]
+
+body:
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Checklist
+      description: 您是否已经检查过是否有人之前报告过此问题?
+      options:
+        # - label: 我已经搜索过 xj-web 的文档
+        #   required: true
+        - label: 我搜索了xj-web 的现有问题
+          required: true
+        - label: 我搜索了与此问题相关的包的现有问题
+          required: true
+        - label: 我可以在下面的“repro.ts”中提供最低限度的代码来复制这个错误
+          required: true
+  - type: input
+    id: system-version
+    validations:
+      required: true
+    attributes:
+      label: '问题所在的操作系统/版本'
+      placeholder: 'macOS 11.5'
+  - type: textarea
+    id: description
+    validations:
+      required: true
+    attributes:
+      label: 描述错误
+      placeholder: 对于错误的清晰而简洁的描述。
+  - type: textarea
+    id: reproduce
+    validations:
+      required: true
+    attributes:
+      label: 重现步骤
+      placeholder: |
+        1. 转到 ...
+        2. 单击 ...
+        3. 向下滚动到 ...
+        4. 出现错误
+  - type: textarea
+    id: expected
+    validations:
+      required: true
+    attributes:
+      label: 预期行为
+      placeholder: 清晰简洁地描述您期望发生的事情
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: 截图
+      description: 如果适用，请添加截图或录音 ([Asciinema](asciinema.org)) 来帮助解释您的问题。
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 其他背景信息
+      placeholder: 在此处添加有关该问题的任何其他背景信息。
+  - type: textarea
+    validations:
+      required: true
+    attributes:
+      label: 复现
+      description: 您的存储库或复现所需的最少代码
+      value: |
+        // save as repro.ts
+        import { defineCustomElement } from 'xj-fv'
+        // ...
+      render: typescript

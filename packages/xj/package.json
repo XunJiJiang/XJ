@@ -1,35 +1,40 @@
 {
   "name": "xj-fv",
-  "version": "0.0.4",
-  "description": "A fast framework",
-  "main": "./src/index.ts",
-  "module": "./src/index.ts",
-  "types": "./dist/xj.d.ts",
+  "version": "0.0.6",
+  "description": "XJ library",
+  "main": "index.ts",
+  "module": "dist/index.esm-bundler.js",
+  "types": "dist/types/index.d.ts",
   "files": [
     "dist",
     "src",
-    "README.md",
-    "LICENSE"
+    "!src/**/*.test.ts",
+    "index.ts",
+    "env.d.ts",
+    "license"
   ],
   "exports": {
     ".": {
-      "import": "./src/index.ts",
-      "types": "./dist/xj.d.ts"
-    },
-    "./package.json": "./package.json"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+      "import": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/index.esm-bundler.js"
+      },
+      "require": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/index.cjs.js"
+      }
+    }
   },
   "keywords": [
     "xj"
   ],
   "author": "XunJiJiang",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/XunJiJiang/XJ/issues"
+  },
+  "homepage": "https://github.com/XunJiJiang/XJ#readme",
   "dependencies": {
-    "@xj-fv/shared": "workspace:*",
-    "@xj-fv/runtime-core": "workspace:*",
-    "@xj-fv/runtime-dom": "workspace:*",
-    "reflect-metadata": "^0.2.2"
+    "@xj-fv/shared": "workspace:*"
   }
 }

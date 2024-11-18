@@ -1,0 +1,11 @@
+{
+  "include": ["packages/shared/env.d.ts", "/packages/shared/src/**/*"],
+  "exclude": ["**/__tests__/*", "**/*.test.*"],
+  "compilerOptions": {
+    /* alias */
+    "baseUrl": "./packages/shared/src",
+    "paths": {
+      "@/*": ["*"]
+    }
+  }
+}
