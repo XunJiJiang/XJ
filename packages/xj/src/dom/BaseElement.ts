@@ -252,8 +252,7 @@ export type EventListeners = {
   handles: EventListener[]
 }
 
-export default interface BaseElement<T extends object = object>
-  extends HTMLElement {
+export interface BaseElement<T extends object = object> extends HTMLElement {
   get obAttr(): string[]
 
   /** 整合observedAttributes和从父组件获取的数据 */

@@ -15,7 +15,7 @@ import {
   type HTMLElementTag,
   HTMLExtends
 } from '@xj-fv/shared'
-import BaseElement, { SYMBOL_INIT } from './BaseElement'
+import { SYMBOL_INIT, type BaseElement } from './BaseElement'
 import { setComponentIns } from './fixComponentIns'
 import { startSetupRunning } from '@/hooks/lifecycle/verifySetup'
 import { clearBeforeMount, runBeforeMount } from '@/hooks/lifecycle/beforeMount'

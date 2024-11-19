@@ -5,7 +5,7 @@ import { type StopFn } from '@/reactive/effect'
 import { watch } from '@/reactive/watch'
 import { Reactive } from '@/reactive/reactive'
 import { isArray } from '@xj-fv/shared'
-import BaseElement from './BaseElement'
+import { type BaseElement } from './BaseElement'
 import {
   getCustomElementOption,
   isCustomElement,

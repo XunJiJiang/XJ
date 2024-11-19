@@ -18,6 +18,8 @@ import { defineCustomElement } from './src/dom/defineElement'
 
 import { createElement } from './src/dom/createElement'
 
+import type { BaseElement } from './src/dom/BaseElement'
+
 import { __jsx, h, Fragment } from './src/dom/jsx'
 
 export default {
@@ -36,6 +38,8 @@ export default {
   h,
   Fragment
 }
+
+export type { BaseElement }
 
 export {
   onBeforeMount,
