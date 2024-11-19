@@ -1,6 +1,6 @@
 {
   "name": "@xj-fv/shared",
-  "version": "0.0.7",
+  "version": "0.0.6",
   "description": "Shared utilities and components for the XJ library",
   "main": "index.ts",
   "module": "dist/index.esm-bundler.js",
