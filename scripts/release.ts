@@ -10,9 +10,16 @@ import {
 import { resolve } from 'node:path'
 import { writeFileSync } from 'node:fs'
 import { execSync } from 'node:child_process'
-import { checkbox } from '@inquirer/prompts'
+import { checkbox, confirm } from '@inquirer/prompts'
 
 async function main() {
+  try {
+    await confirmPr()
+  } catch (error) {
+    log.red(error)
+    return
+  }
+
   log.blue('release started...')
   try {
     const packages = await selectPackages()
@@ -83,6 +90,19 @@ async function restorePackage(packageName: keyof typeof packages) {
   const packagePath = resolve(__dirname, `packages/${packageName}/package.json`)
   pkg.dependencies = dependencies
   writeFileSync(packagePath, JSON.stringify(pkg, null, 2))
+}
+
+/** 这是一个提示，要求发布前先进行pr */
+async function confirmPr() {
+  const answer = await confirm({
+    message: 'Have you created a PR before publishing?'
+  })
+
+  if (!answer) {
+    throw new Error(
+      'In order to get the correct version number, you need to submit and pass the PR before publishing npm and the package version increment.'
+    )
+  }
 }
 
 async function selectPackages() {
