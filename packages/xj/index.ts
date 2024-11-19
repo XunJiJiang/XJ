@@ -16,8 +16,6 @@ import { watch } from './src/reactive/watch'
 
 import { defineCustomElement } from './src/dom/defineElement'
 
-import { default as useId } from './src/hooks/useId'
-
 import { createElement } from './src/dom/createElement'
 
 import { __jsx, h, Fragment } from './src/dom/jsx'
@@ -33,7 +31,6 @@ export default {
   effect,
   watch,
   defineCustomElement,
-  useId,
   createElement,
   __jsx,
   h,
@@ -51,7 +48,6 @@ export {
   effect,
   watch,
   defineCustomElement,
-  useId,
   createElement,
   __jsx,
   h,
