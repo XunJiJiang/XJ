@@ -1,0 +1,22 @@
+name: 功能请求
+description: 为该项目提出建议
+labels: [enhancement]
+
+body:
+  - type: textarea
+    id: solution
+    validations:
+      required: true
+    attributes:
+      label: 描述新功能
+      placeholder: 对新功能的清晰而简洁的描述。
+  - type: textarea
+    id: problem
+    attributes:
+      label: 您的功能与您遇到的问题相关吗?
+      placeholder: 清晰简洁地描述问题所在。例如，我总是在遇到以下情况时感到沮丧 [...]
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 其他背景信息
+      placeholder: 在此处添加有关功能请求的任何其他上下文或屏幕截图。

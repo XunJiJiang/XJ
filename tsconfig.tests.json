@@ -1,0 +1,10 @@
+{
+  "include": ["**/__tests__/*", "**/*.test.*"],
+  "compilerOptions": {
+    /* alias */
+    "baseUrl": "./",
+    "paths": {
+      "@test/*": ["./tests/*"]
+    }
+  }
+}

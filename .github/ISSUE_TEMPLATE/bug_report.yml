@@ -1,0 +1,72 @@
+name: Bug report
+description: Create a report to help us improve
+labels: [bug]
+
+body:
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Checklist
+      description: Have you checked if someone has reported this issue before?
+      options:
+        # - label: I have searched through the xj-web docs
+        #   required: true
+        - label: I have searched through the existing issues of xj-web
+          required: true
+        - label: I have searched the existing issues of packages related to this issue
+          required: true
+        - label: I can replicate the bug with the minimal `repro.ts` provided below
+          required: true
+  - type: input
+    id: system-version
+    validations:
+      required: true
+    attributes:
+      label: 'The operating system/version where the problem occurs'
+      placeholder: 'macOS 11.5'
+  - type: textarea
+    id: description
+    validations:
+      required: true
+    attributes:
+      label: Describe the bug
+      placeholder: A clear and concise description of what the bug is.
+  - type: textarea
+    id: reproduce
+    validations:
+      required: true
+    attributes:
+      label: Steps to Reproduce
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+  - type: textarea
+    id: expected
+    validations:
+      required: true
+    attributes:
+      label: Expected behavior
+      placeholder: A clear and concise description of what you expected to happen
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: If applicable, add screenshots or recording ([Asciinema](asciinema.org)) to help explain your problem.
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      placeholder: Add any additional context about the problem here.
+  - type: textarea
+    validations:
+      required: true
+    attributes:
+      label: Repro
+      description: Your Repository or the minimum code needed to reproduce
+      value: |
+        // save as repro.ts
+        import { defineCustomElement } from 'xj-fv'
+        // ...
+      render: typescript
