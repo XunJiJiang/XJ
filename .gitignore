@@ -20,6 +20,7 @@ logs/
 # Optional npm cache directory
 .npm/
 npm-publish.*
+publish.*
 
 # Ignore lock files
 pnpm-lock.yaml
@@ -70,7 +71,6 @@ example
 dist-ssr
 *.local
 
-**/test.*
 **/tests.*
 **/test-*
 **/tests-*
