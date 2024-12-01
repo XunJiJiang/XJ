@@ -30,12 +30,6 @@ export function createViteConfig(packageName: string) {
       alias: {
         '@': joinTo(`packages/${packageName}/src`)
       }
-    },
-    test: {
-      coverage: {
-        include: [`packages/${packageName}/**/*.ts`],
-        exclude: [`packages/${packageName}/**/index.ts', '**/*.test.ts`]
-      }
     }
   })
 }
@@ -46,13 +40,17 @@ export function createTsConfigDts(
 ) {
   const tsconfigPath = joinTo(`temp/tsconfig.dts.${packageName}.json`)
 
+  const outDir = `${__dirname}/packages/${packageName}/dist/types`
+
+  const outFileEntry = outDir + '/index.d.ts'
+
   const tsconfig = `{
   "compilerOptions": {
     "declaration": true,
     "emitDeclarationOnly": true,
     "stripInternal": true,
     "composite": false,
-    "outDir": "${__dirname}/packages/${packageName}/dist/types",
+    "outDir": "${outDir}",
     "target": "esnext",
     "module": "ESNext",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
@@ -66,7 +64,8 @@ export function createTsConfigDts(
   "include": [
     "${__dirname}/packages/${packageName}/src/**/*",
     "${__dirname}/packages/${packageName}/env.d.ts",
-    "${__dirname}/packages/${packageName}/index.ts"
+    "${__dirname}/packages/${packageName}/index.ts",
+    "${__dirname}/packages/${packageName}/env.d.ts"
   ],
   "exclude": [
     "${__dirname}/**/__tests__/*",
@@ -82,5 +81,5 @@ export function createTsConfigDts(
 
   writeFileSync(tsconfigPath, tsconfig)
 
-  return tsconfigPath
+  return [tsconfigPath, outFileEntry]
 }

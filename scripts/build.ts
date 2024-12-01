@@ -3,6 +3,7 @@ import { execSync } from 'node:child_process'
 import { build as viteBuild } from 'vite'
 import { __dirname, log, packages } from './utils'
 import { createViteConfig, createTsConfigDts } from '../vite.config.[package]'
+import { readFileSync, writeFileSync } from 'node:fs'
 
 const args = process.argv.slice(2)
 
@@ -51,11 +52,21 @@ async function buildDts(
   packageName: string,
   alias: Record<string, string> = {}
 ) {
-  const configPath = createTsConfigDts(packageName, alias)
+  const [configPath, outFileEntry] = createTsConfigDts(packageName, alias)
   try {
     execSync(`npx tsc -b ${configPath}`, { stdio: 'inherit' })
   } catch (error) {
     log.red('TypeScript build failed:')
+    log.red(error)
+  }
+
+  try {
+    const dtsFile = resolve(outFileEntry)
+    const content =
+      `/// <reference path="../../env.d.ts" />\n` + readFileSync(dtsFile)
+    writeFileSync(dtsFile, content)
+  } catch (error) {
+    log.red('Add reference path failed:')
     log.red(error)
   }
 }
