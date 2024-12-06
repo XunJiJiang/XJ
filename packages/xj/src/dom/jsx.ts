@@ -2,6 +2,7 @@ import { type ChildType, createElement } from './createElement'
 import { isArray } from '@xj-fv/shared'
 import { isRef } from '@/reactive/ref'
 import { isReactive } from '@/reactive/Dependency'
+import { type CustomElementType } from './defineElement'
 
 const isFragment = (tag: unknown): tag is typeof Fragment => tag === Fragment
 
@@ -12,12 +13,18 @@ export const Fragment = Symbol.for('x-fgt') as unknown as {
 type DeepChildList = ChildType[] | DeepChildList[]
 
 export const h = (
-  tag: string | typeof Fragment,
+  tag:
+    | string
+    | typeof Fragment
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    | CustomElementType<any, any, any>,
   // TODO: props type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   props?: any,
   ...children: DeepChildList[]
 ): Node | Node[] => {
+  let _tag: string | typeof Fragment
+
   function _flat(array: DeepChildList[]): ChildType[] {
     if (array.every((val) => !isArray(val))) {
       return array
@@ -25,9 +32,27 @@ export const h = (
     const _array = array.flat() as DeepChildList[]
     return _flat(_array)
   }
+
   const _children = _flat(children)
 
-  if (isFragment(tag)) {
+  if (typeof tag === 'function') {
+    const _events = {}
+    const _props = {}
+
+    for (const key in props) {
+      if (key.startsWith('on-')) {
+        _events[key.slice(3)] = props[key]
+      } else {
+        _props[key] = props[key]
+      }
+    }
+
+    return tag(props, _events, _children)
+  } else {
+    _tag = tag
+  }
+
+  if (isFragment(_tag)) {
     return _children.reduce((children, child) => {
       if (child instanceof Node) children.push(child)
       // TODO: 未处理Ref Reactive
@@ -43,7 +68,7 @@ export const h = (
       return children
     }, [] as Node[])
   } else {
-    return createElement(tag, props ?? {}, _children ?? [])
+    return createElement(_tag, props ?? {}, _children ?? [])
   }
 }
 

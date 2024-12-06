@@ -14,7 +14,12 @@ import { effect } from './src/reactive/effect'
 
 import { watch } from './src/reactive/watch'
 
-import { defineCustomElement } from './src/dom/defineElement'
+import {
+  defineCustomElement,
+  type CustomElementType,
+  type BaseProps,
+  type BaseEmits
+} from './src/dom/defineElement'
 
 import { createElement } from './src/dom/createElement'
 
@@ -39,7 +44,7 @@ export default {
   Fragment
 }
 
-export type { BaseElement }
+export type { BaseElement, CustomElementType, BaseProps, BaseEmits }
 
 export {
   onBeforeMount,

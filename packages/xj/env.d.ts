@@ -5,6 +5,10 @@ declare namespace JSX {
   interface IntrinsicElements {
     [eleName: string]: any
   }
+
+  interface IntrinsicAttributes {
+    [attrName: string]: any
+  }
 }
 
 declare const __jsx: {
