@@ -101,7 +101,9 @@ export default [
       '**/tests/**',
       '**/tmp/**',
       '**/vendor/**',
-      '**/webpack/**'
+      '**/webpack/**',
+      '**/*.js',
+      '**/*.mjs'
     ]
   }
 ]

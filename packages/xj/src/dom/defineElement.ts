@@ -8,7 +8,7 @@
  */
 
 import {
-  Func,
+  type Func,
   hasOwn,
   isArray,
   notNull,
@@ -20,7 +20,7 @@ import { setComponentIns } from './fixComponentIns'
 import { startSetupRunning } from '@/hooks/lifecycle/verifySetup'
 import { clearBeforeMount, runBeforeMount } from '@/hooks/lifecycle/beforeMount'
 import { clearMounted, runMounted } from '@/hooks/lifecycle/mounted'
-import { Ref } from '@/reactive/ref'
+import type { Ref } from '@/reactive/ref'
 import {
   _createElement,
   customElementOptionMap,
