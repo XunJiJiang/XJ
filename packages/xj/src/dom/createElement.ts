@@ -3,25 +3,55 @@ import { isReactive } from '@/reactive/Dependency'
 import { isRef, Ref } from '@/reactive/ref'
 import { type StopFn } from '@/reactive/effect'
 import { watch } from '@/reactive/watch'
-import { Reactive } from '@/reactive/reactive'
-import { isArray } from '@xj-fv/shared'
+import { type Reactive } from '@/reactive/reactive'
+import { type HTMLElementTag, isArray } from '@xj-fv/shared'
 import { type BaseElement } from './BaseElement'
-import {
-  getCustomElementOption,
-  isCustomElement,
-  isReservedKey
-} from './defineElement'
 
-// const eventCheck = /*#__PURE__*/ (
-//   _key: EventHandlers,
-//   value: (e: Event) => void
-// ) => {
-//   if (typeof value !== 'function') {
-//     // console.error(`事件绑定必须是函数, 但得到了 ${typeof value} ${value}`)
-//     return false
-//   }
-//   return true
-// }
+/** 保留键 */
+export const reservedKeys = ['ref', 'expose']
+
+type ReservedKey = 'ref' | 'expose'
+
+export const isReservedKey = (key: string): key is ReservedKey =>
+  reservedKeys.includes(key)
+
+export type CustomElementOptions = {
+  extends: HTMLElementTag | null
+  shadow: boolean
+}
+
+/** 记录自定义web组件名 */
+const customElementNameMap = new Map<string, CustomElementOptions>()
+
+/** 是否是自定义web组件 */
+export const isCustomElement = (
+  _el: Element,
+  name: string
+): _el is BaseElement => customElementNameMap.has(name)
+
+/** 获取自定义组件的配置 */
+export const getCustomElementOption = (
+  name: string
+): CustomElementOptions | undefined => {
+  return customElementNameMap.get(name)
+}
+
+export const hasCustomElementOption = (name: string): boolean => {
+  return customElementNameMap.has(name)
+}
+
+export const setCustomElementOption = (
+  name: string,
+  opt: CustomElementOptions
+) => {
+  customElementNameMap.set(name, opt)
+}
+
+export const customElementOptionMap = {
+  set: setCustomElementOption,
+  get: getCustomElementOption,
+  has: hasCustomElementOption
+}
 
 const setAttribute = (el: Element, key: string, value: any) => {
   if (value === null || value === undefined) {
@@ -49,7 +79,7 @@ Element.prototype.appendChild = function <T extends Node>(node: T): T {
   return _ret
 }
 
-export const createElement = (
+export const _createElement = (
   tag: string,
   props?: { [key: string]: any },
   children?: ChildType[]
@@ -71,7 +101,7 @@ export const createElement = (
   //   `
   // }
 
-  const customElementOption = getCustomElementOption(tag)
+  const customElementOption = customElementOptionMap.get(tag)
 
   const el = (() => {
     if (customElementOption?.extends) {
@@ -330,6 +360,14 @@ export const createElement = (
   })
 
   return el
+}
+
+export const createElement = (
+  tag: string,
+  props?: { [key: string]: any },
+  children?: ChildType[]
+): Element => {
+  return _createElement(tag, props, children)
 }
 
 export const createWatchNode = (

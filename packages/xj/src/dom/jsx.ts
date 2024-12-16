@@ -17,7 +17,7 @@ export const h = (
     | string
     | typeof Fragment
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    | CustomElementType<any, any, any>,
+    | CustomElementType<any, any, any, any>,
   // TODO: props type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   props?: any,
@@ -47,7 +47,7 @@ export const h = (
       }
     }
 
-    return tag(props, _events, _children)
+    return tag(props, _children)
   } else {
     _tag = tag
   }
