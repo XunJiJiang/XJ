@@ -1,5 +1,7 @@
 # XJ
 
+> **警告：本文档已过时。暂时没有新的文档。**
+
 中文 | [English](./README.md)
 
 ## 注意
@@ -48,8 +50,8 @@ export default defineConfig({
   root: './src/',
   server: {
     host: '127.0.0.1',
-    port: 3000,
-  },
+    port: 3000
+  }
 })
 ```
 
@@ -76,7 +78,7 @@ export default defineConfig({
 import { createRoot, expose } from 'xj'
 
 const app = createRoot(document.getElementById('main')).render(
-  <h1>hello XJ</h1>,
+  <h1>hello XJ</h1>
 )
 ```
 
