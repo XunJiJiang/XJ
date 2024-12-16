@@ -1,0 +1,17 @@
+staged_files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^(packages|scripts|tests)/.*|.*\.(ts|mjs|json)$')
+
+if [ -n "$staged_files" ]; then
+    output=$(echo "$staged_files" | xargs prettier --check)
+
+  if echo "$output" | grep -i "warn"; then
+    echo "$staged_files" | xargs prettier --write
+    echo "代码格式化检查包含警告，提交已取消。"
+    exit 1
+  fi
+
+  if echo "$output" | grep -i "error"; then
+    echo "$staged_files" | xargs prettier --write
+    echo "代码格式化检查包含错误，提交已取消。"
+    exit 1
+  fi
+fi

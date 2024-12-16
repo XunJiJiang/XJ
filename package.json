@@ -18,7 +18,11 @@
     "test": "vitest",
     "test-ui": "vitest --ui",
     "coverage": "vitest run --coverage",
-    "link-packages": "lerna link"
+    "link-packages": "lerna link",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "**/*": "prettier --write --ignore-unknown"
   },
   "bin": {
     "xj-clean": "./scripts/clean.js"
