@@ -3,14 +3,92 @@ import { isReactive } from '@/reactive/Dependency'
 import { isRef, Ref } from '@/reactive/ref'
 import { type StopFn } from '@/reactive/effect'
 import { watch } from '@/reactive/watch'
-import { type Reactive } from '@/reactive/reactive'
+import { reactive, type Reactive } from '@/reactive/reactive'
 import { type Func, type HTMLElementTag, isArray } from '@xj-fv/shared'
 import { type BaseElement } from './BaseElement'
 
-export const $if = Symbol('x-if')
-export const $elseif = Symbol('x-else-if')
-export const $else = Symbol('x-else')
-export const $for = Symbol('x-for')
+class SameKey extends Error {
+  constructor(key: string) {
+    super(`x-for: key ${key} is same`)
+  }
+}
+
+export const $if: FunctionLabelComponent.$if = ({ value }, ...children) => {}
+export const $elseif: FunctionLabelComponent.$elseif = (
+  { value },
+  ...children
+) => {}
+export const $else: FunctionLabelComponent.$else = (_props, ...children) => {}
+
+// TODO: $for 存在内存泄漏
+export const $for: FunctionLabelComponent.$for = ({ value, children }) => {
+  const childNodes: (Node | Node[])[] = isReactive(value) ? reactive([]) : []
+  const itemMap = new Map<number | string | symbol, Node[] | Node>()
+  const newKeys = new Set<number | string | symbol>()
+
+  let tempKey: number | string | symbol | null = null
+
+  const createSetKey = (index: number) => {
+    return (key: string | number | symbol) => {
+      newKeys.add(key)
+      tempKey = key
+      if (itemMap.has(key)) {
+        throw new SameKey(String(key))
+      }
+    }
+  }
+
+  if (isReactive<any>(value) && isArray<Reactive<any[]>>(value)) {
+    // const stopFn =
+    watch(
+      value,
+      (value) => {
+        value.forEach((item, index) => {
+          try {
+            const child = children(item, index, createSetKey(index))
+            itemMap.set(tempKey!, child)
+            childNodes[index] = child
+          } catch (e) {
+            if (e instanceof SameKey) {
+              childNodes[index] = itemMap.get(tempKey!)!
+            } else {
+              throw e
+            }
+          }
+        })
+        tempKey = null
+        itemMap.forEach((_value, key) => {
+          if (!newKeys.has(key)) {
+            itemMap.delete(key)
+          }
+        })
+        childNodes.splice(value.length)
+        newKeys.clear()
+      },
+      { deep: false, promSync: true }
+    )
+  } else if (isArray(value)) {
+    value.forEach((item: any, index) => {
+      const child = children(item, index, createSetKey(index))
+      childNodes.push(child)
+    })
+  }
+
+  return childNodes
+}
+
+// const functionLabels = new Set([$if, $elseif, $else, $for])
+
+export const isIfLabel = (
+  fn: Func
+): fn is FunctionLabelComponent.$if | FunctionLabelComponent.$elseif =>
+  fn === $if || fn === $elseif
+
+export const isElseLabel = (fn: Func): fn is FunctionLabelComponent.$else =>
+  fn === $else
+
+export const isForLabel = (fn: Func): fn is FunctionLabelComponent.$for =>
+  fn === $for
 
 export const STOP_EFFECTS: XJ.STOP_EFFECTS = Symbol(
   'x-stop-effects'
@@ -115,16 +193,16 @@ export type CustomElementComponent<
         ref: Ref<BaseElement | null>
       }
   >,
-  children: ChildType[]
+  children: ChildType[] | Reactive<ChildType[]>
 ) => BaseElement
 
 /** 保留键 */
-export const reservedKeys = ['ref', 'expose']
+export const reservedKeys = ['ref', 'expose'] as const
 
-type ReservedKey = 'ref' | 'expose'
+type ReservedKey = (typeof reservedKeys)[number]
 
 export const isReservedKey = (key: string): key is ReservedKey =>
-  reservedKeys.includes(key)
+  reservedKeys.includes(key as ReservedKey)
 
 export type CustomElementOptions = {
   extends: HTMLElementTag | null
@@ -193,10 +271,39 @@ Element.prototype.appendChild = function <T extends Node>(node: T): T {
   return _ret as T
 }
 
+const oldInsertAfter = Element.prototype.insertAdjacentElement
+
+Element.prototype.insertAdjacentElement = function (
+  position: InsertPosition,
+  element: Element
+): Element | null {
+  const _ret = oldInsertAfter.call(this, position, element)
+  if (isXJElement(element)) {
+    element[START_EFFECTS]()
+  }
+  return _ret
+}
+
+const oldReplaceChild = Element.prototype.replaceChild
+
+Element.prototype.replaceChild = function <T extends Node>(
+  newChild: Node,
+  oldChild: T
+): T {
+  const _ret = oldReplaceChild.call(this, newChild, oldChild)
+  if (isXJElement(newChild)) {
+    newChild[START_EFFECTS]()
+  }
+  if (isXJElement(oldChild)) {
+    oldChild[STOP_EFFECTS]()
+  }
+  return _ret as T
+}
+
 export const _createElement = (
   tag: string,
   props?: { [key: string]: any },
-  children?: ChildType[]
+  children?: ChildType[] | Reactive<ChildType[]>
 ): Element => {
   // TODO: 使用模板字符串拼接dom字符串, 使用与否目前没有显著性能差异
   // if (
@@ -372,7 +479,7 @@ export const _createElement = (
   const elRemove = el.remove.bind(el)
 
   el.remove = () => {
-    el[START_EFFECTS]()
+    el[STOP_EFFECTS]()
     elRemove()
   }
 
@@ -398,7 +505,7 @@ export const _createElement = (
     else {
       // 对于自定义元素
       if (isCustomEle) {
-        // 对于保留属性 TODO: 目前是ref和expose。有修改需求时，需要修改此处
+        // 对于保留属性 TODO: 目前是ref,expose。有修改需求时，需要修改此处
         if (isReservedKey(key)) {
           if (isRef(props[key])) {
             if (key === 'ref') {
@@ -425,7 +532,7 @@ export const _createElement = (
       }
       // 对于原生元素
       else {
-        // 对于保留属性 TODO: 目前是ref和expose。有修改需求时，需要修改此处
+        // 对于保留属性 TODO: 目前是ref,expose。有修改需求时，需要修改此处
         if (isReservedKey(key)) {
           if (isRef(props[key])) {
             if (key === 'ref') {
@@ -459,19 +566,51 @@ export const _createElement = (
     }
   }
 
-  children?.forEach((child) => {
-    if (child instanceof Node) {
-      el.appendChild(child)
-    } else {
-      const childEl = createWatchNode(
-        child,
-        textNodeEffects,
-        textNodeEffectsStops
-      )
+  if (isReactive(children)) {
+    const stop = watch(
+      children as Reactive<ChildType[]>,
+      (value) => {
+        const oldValue = el.childNodes
+        value.forEach((child, index) => {
+          if (oldValue && oldValue[index] === child) {
+            return
+          } else {
+            const newNode = createWatchNode(
+              child,
+              textNodeEffects,
+              textNodeEffectsStops
+            )
+            if (childNodes[index]) {
+              el.replaceChild(newNode, childNodes[index])
+            } else {
+              el.appendChild(newNode)
+            }
+          }
+        })
+        if (value.length < childNodes.length) {
+          for (let i = value.length; i < childNodes.length; i++) {
+            childNodes[i].remove()
+          }
+        }
+      },
+      { deep: true, promSync: true }
+    )
+    EffectStops.add(stop)
+  } else {
+    children?.forEach((child) => {
+      if (child instanceof Node) {
+        el.appendChild(child)
+      } else {
+        const childEl = createWatchNode(
+          child,
+          textNodeEffects,
+          textNodeEffectsStops
+        )
 
-      el.appendChild(childEl)
-    }
-  })
+        el.appendChild(childEl)
+      }
+    })
+  }
 
   return el
 }
@@ -479,7 +618,7 @@ export const _createElement = (
 export const createElement = (
   tag: string,
   props?: { [key: string]: any },
-  children?: ChildType[]
+  children?: ChildType[] | Reactive<ChildType[]>
 ): Element => {
   return _createElement(tag, props, children)
 }
@@ -518,6 +657,9 @@ export const createWatchNode = (
       )
     })
     return childEl
+  }
+  if (child instanceof Node) {
+    return child
   }
   return document.createTextNode(String(child))
 }

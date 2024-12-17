@@ -23,7 +23,7 @@ import { clearMounted, runMounted } from '@/hooks/lifecycle/mounted'
 import {
   _createElement,
   customElementOptionMap,
-  reservedKeys,
+  isReservedKey,
   type Exposed,
   type BaseProps,
   type DefineProps,
@@ -185,7 +185,7 @@ const checkObservedAttributes = (attrs: string[]) => {
       /*@__PURE__*/ console.error(
         `observedAttributes: ${attr} 不能以 on- 开头。`
       )
-    } else if (reservedKeys.includes(attr)) {
+    } else if (isReservedKey(attr)) {
       /*@__PURE__*/ console.error(`observedAttributes: ${attr} 为保留键。`)
     }
   }
@@ -305,7 +305,7 @@ export const defineCustomElement = <
               [key in O]: string
             }
           )[name] = value
-        } else if (reservedKeys.includes(name)) {
+        } else if (isReservedKey(name)) {
           continue
         }
         // else {

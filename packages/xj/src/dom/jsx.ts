@@ -1,11 +1,15 @@
 import {
   type ChildType,
   type CustomElementComponent,
-  createElement
+  createElement,
+  isIfLabel,
+  isElseLabel,
+  isForLabel
 } from './createElement'
 import { isArray } from '@xj-fv/shared'
 import { isRef } from '@/reactive/ref'
 import { isReactive } from '@/reactive/Dependency'
+import { Reactive } from '@/reactive/reactive'
 
 const isFragment = (tag: unknown): tag is typeof Fragment => tag === Fragment
 
@@ -20,13 +24,28 @@ export const h = (
     | string
     | typeof Fragment
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    | CustomElementComponent<any, any, any, any>,
+    | CustomElementComponent<any, any, any, any>
+    | FunctionLabelComponent.$if
+    | FunctionLabelComponent.$elseif
+    | FunctionLabelComponent.$else
+    | FunctionLabelComponent.$for,
   // TODO: props type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   props?: any,
+  firstChild?:
+    | Reactive<ChildType[]>
+    | DeepChildList
+    | ((item: unknown, index: number) => ChildType | ChildType[]),
   ...children: DeepChildList[]
-): Node | Node[] => {
+): Node | Node[] | (Node | Node[])[] => {
   let _tag: string | typeof Fragment
+
+  if (
+    firstChild !== undefined &&
+    typeof firstChild !== 'function' &&
+    !isReactive(firstChild)
+  )
+    children = [firstChild, ...children]
 
   function _flat(array: DeepChildList[]): ChildType[] {
     if (array.every((val) => !isArray(val))) {
@@ -39,22 +58,32 @@ export const h = (
   const _children = _flat(children)
 
   if (typeof tag === 'function') {
-    const _events: {
-      [key: string]: EventListener
-    } = {}
-    const _props: {
-      [key: string]: unknown
-    } = {}
-
-    for (const key in props) {
-      if (key.startsWith('on-')) {
-        _events[key.slice(3)] = props[key]
-      } else {
-        _props[key] = props[key]
-      }
+    if (isIfLabel(tag)) {
+      return tag({
+        value: props.value,
+        children: _children
+      })
+    } else if (isElseLabel(tag)) {
+      return tag({
+        children: _children
+      })
+    } else if (isForLabel(tag)) {
+      return tag({
+        value: props.value,
+        children: firstChild as (
+          item: unknown,
+          index: number,
+          setKey: (key: string | number | symbol) => void
+        ) => Node | Node[]
+      })
     }
 
-    return tag(props, _children)
+    return tag(
+      props,
+      isReactive(firstChild)
+        ? (firstChild as unknown as Reactive<ChildType[]>)
+        : _children
+    )
   } else {
     _tag = tag
   }
@@ -75,7 +104,13 @@ export const h = (
       return children
     }, [] as Node[])
   } else {
-    return createElement(_tag, props ?? {}, _children ?? [])
+    return createElement(
+      _tag,
+      props ?? {},
+      isReactive(firstChild)
+        ? (firstChild as unknown as Reactive<ChildType[]>)
+        : (_children ?? [])
+    )
   }
 }
 
