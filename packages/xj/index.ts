@@ -15,13 +15,21 @@ import { effect } from './src/reactive/effect'
 import { watch } from './src/reactive/watch'
 
 import {
-  defineCustomElement,
-  type CustomElementType,
-  type BaseProps,
-  type BaseEmits
+  type CustomElementConfig,
+  defineCustomElement
 } from './src/dom/defineElement'
 
-import { createElement } from './src/dom/createElement'
+import {
+  $if,
+  $elseif,
+  $else,
+  $for,
+  type CustomElementComponent,
+  type BaseProps,
+  type BaseEmits,
+  type DefineProps,
+  type CustomElementOptions
+} from './src/dom/createElement'
 
 import type { BaseElement } from './src/dom/BaseElement'
 
@@ -38,13 +46,24 @@ export default {
   effect,
   watch,
   defineCustomElement,
-  createElement,
+  $if,
+  $elseif,
+  $else,
+  $for,
   __jsx,
   h,
   Fragment
 }
 
-export type { BaseElement, CustomElementType, BaseProps, BaseEmits }
+export type {
+  BaseElement,
+  CustomElementComponent,
+  BaseProps,
+  BaseEmits,
+  DefineProps,
+  CustomElementConfig,
+  CustomElementOptions
+}
 
 export {
   onBeforeMount,
@@ -57,7 +76,10 @@ export {
   effect,
   watch,
   defineCustomElement,
-  createElement,
+  $if,
+  $elseif,
+  $else,
+  $for,
   __jsx,
   h,
   Fragment

@@ -20,18 +20,23 @@ import { setComponentIns } from './fixComponentIns'
 import { startSetupRunning } from '@/hooks/lifecycle/verifySetup'
 import { clearBeforeMount, runBeforeMount } from '@/hooks/lifecycle/beforeMount'
 import { clearMounted, runMounted } from '@/hooks/lifecycle/mounted'
-import type { Ref } from '@/reactive/ref'
 import {
   _createElement,
   customElementOptionMap,
   reservedKeys,
+  type Exposed,
+  type BaseProps,
+  type DefineProps,
+  type BaseEmits,
+  type DefineEmits,
+  type RequiredKeys,
   type CustomElementOptions,
-  type ChildType
+  type CustomElementComponent,
+  type FuncConstructorToType,
+  type ConstructorToType
 } from './createElement'
 
 type Shared = Record<string, any>
-
-type Exposed = Record<string, any>
 
 // export type DefineProps<T extends Record<string, any>> = T
 
@@ -54,60 +59,6 @@ export interface EleAttributeChangedCallback {
     },
     context: { data: Shared }
   ): void
-}
-
-export type BaseProps = Record<string, Constructors | (() => unknown)>
-
-type Constructors =
-  | StringConstructor
-  | NumberConstructor
-  | BooleanConstructor
-  | ArrayConstructor
-  | ObjectConstructor
-  | FunctionConstructor
-
-type ConstructorToType<C> = C extends StringConstructor
-  ? string
-  : C extends NumberConstructor
-    ? number
-    : C extends BooleanConstructor
-      ? boolean
-      : C extends ArrayConstructor
-        ? Array<unknown>
-        : C extends ObjectConstructor
-          ? object
-          : C extends FunctionConstructor
-            ? Func
-            : C extends () => Array<infer U>
-              ? U[]
-              : C extends () => infer U
-                ? U
-                : never
-
-type DefineProps<T extends BaseProps> = {
-  [key in keyof T]: {
-    default?: ConstructorToType<T[key]>
-    required?: boolean
-    type: T[key] | T[key][]
-  }
-}
-
-export type BaseEmits = Record<string, FunctionConstructor | (() => Func)>
-
-type FuncConstructorToType<C> = C extends FunctionConstructor
-  ? Func
-  : C extends () => infer U
-    ? U extends Func
-      ? U
-      : never
-    : never
-
-type DefineEmits<T extends BaseEmits> = {
-  [key in keyof T]: {
-    default?: FuncConstructorToType<T[key]>
-    required?: boolean
-    type: T[key] | T[key][]
-  }
 }
 
 // type BaseSlots = Record<string, () => Node[] | Node> | string[]
@@ -169,21 +120,6 @@ export type CustomElementConfig<
   attributeChanged?: EleAttributeChangedCallback
 }
 
-/** 获取必填key */
-type GetRequiredKeys<
-  T extends DefineProps<{
-    [key: string]: Constructors | (() => unknown)
-  }>
-> = {
-  [K in keyof T]: T[K] extends { required: true } ? K : never
-}[keyof T]
-
-/** 解析必传属性和非必传属性 */
-type RequiredKeys<P extends BaseProps, Props extends DefineProps<P>> = Partial<
-  Omit<P, GetRequiredKeys<Props>>
-> &
-  Omit<P, keyof Omit<P, GetRequiredKeys<Props>>>
-
 // TODO: TEST START
 type P = {
   a: StringConstructor
@@ -224,30 +160,6 @@ const test: {
 
 console.log(test)
 // TODO: TEST END
-
-// TODO: 不会限制不存在的属性可能是因为IntrinsicAttributes为any
-export type CustomElementType<
-  P extends BaseProps,
-  E,
-  O extends string,
-  Props extends DefineProps<P>
-  // S,
-  // Shadow
-> = (
-  props: {
-    [key in keyof RequiredKeys<P, Props>]: ConstructorToType<
-      RequiredKeys<P, Props>[key]
-    >
-  } & Partial<
-    {
-      [key in keyof E as `on-${string & key}`]: FuncConstructorToType<E[key]>
-    } & Record<O, string> & {
-        expose: Ref<Exposed | null>
-        ref: Ref<BaseElement | null>
-      }
-  >,
-  children: ChildType[]
-) => BaseElement
 
 const idGenerator = createIdGenerator('xj-custom-element')
 
@@ -296,7 +208,7 @@ export const defineCustomElement = <
 >(
   config: CustomElementConfig<P, E, O, S, Shadow>,
   options?: CustomElementOptions
-): CustomElementType<P, E, O, typeof props> => {
+): CustomElementComponent<P, E, O, typeof props> => {
   const {
     name = idGenerator(),
     style,
@@ -315,7 +227,8 @@ export const defineCustomElement = <
 
   if (customElementOptionMap.has(name.toLowerCase())) {
     /*@__PURE__*/ console.error(`自定义组件 ${name} 重复定义。`)
-    return
+    return customElementOptionMap.get(name.toLowerCase())?.__context__
+      .component as CustomElementComponent<P, E, O, typeof props>
   }
 
   const _shadow = shadow
@@ -684,34 +597,24 @@ export const defineCustomElement = <
     }
   }
 
+  const component: CustomElementComponent<P, E, O, typeof props> = (
+    props,
+    children
+  ) => {
+    return _createElement(name.toLowerCase(), props, children) as BaseElement
+  }
+
   customElementOptionMap.set(name.toLowerCase(), {
     extends: options?.extends ?? null,
-    shadow: _shadow
+    shadow: _shadow,
+    __context__: {
+      component
+    }
   })
 
   customElementRegistry.define(name, Ele, {
     extends: options?.extends ?? undefined
   })
 
-  return (
-    prop: {
-      [key in keyof RequiredKeys<P, typeof props>]: ConstructorToType<
-        RequiredKeys<P, typeof props>[key]
-      >
-    } & Partial<
-      {
-        [key in keyof E as `on-${string & key}`]: FuncConstructorToType<E[key]>
-      } & Record<O, string> & {
-          expose: Ref<Exposed | null>
-          ref: Ref<BaseElement | null>
-        }
-    >,
-    // events: {
-    //   [key in keyof E]: Func
-    // },
-    children: ChildType[]
-  ) => {
-    // return name.toLowerCase()
-    return _createElement(name.toLowerCase(), prop, children) as BaseElement
-  }
+  return component
 }

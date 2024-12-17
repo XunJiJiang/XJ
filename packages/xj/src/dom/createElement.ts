@@ -4,8 +4,119 @@ import { isRef, Ref } from '@/reactive/ref'
 import { type StopFn } from '@/reactive/effect'
 import { watch } from '@/reactive/watch'
 import { type Reactive } from '@/reactive/reactive'
-import { type HTMLElementTag, isArray } from '@xj-fv/shared'
+import { type Func, type HTMLElementTag, isArray } from '@xj-fv/shared'
 import { type BaseElement } from './BaseElement'
+
+export const $if = Symbol('x-if')
+export const $elseif = Symbol('x-else-if')
+export const $else = Symbol('x-else')
+export const $for = Symbol('x-for')
+
+export const STOP_EFFECTS: XJ.STOP_EFFECTS = Symbol(
+  'x-stop-effects'
+) as XJ.STOP_EFFECTS
+
+export const START_EFFECTS: XJ.START_EFFECTS = Symbol(
+  'x-start-effects'
+) as XJ.START_EFFECTS
+
+export type Exposed = Record<string, any>
+
+type Constructors =
+  | StringConstructor
+  | NumberConstructor
+  | BooleanConstructor
+  | ArrayConstructor
+  | ObjectConstructor
+  | FunctionConstructor
+
+export type ConstructorToType<C> = C extends StringConstructor
+  ? string
+  : C extends NumberConstructor
+    ? number
+    : C extends BooleanConstructor
+      ? boolean
+      : C extends ArrayConstructor
+        ? Array<unknown>
+        : C extends ObjectConstructor
+          ? object
+          : C extends FunctionConstructor
+            ? Func
+            : C extends () => Array<infer U>
+              ? U[]
+              : C extends () => infer U
+                ? U
+                : never
+
+export type BaseProps = Record<string, Constructors | (() => unknown)>
+
+export type DefineProps<T extends BaseProps> = {
+  [key in keyof T]: {
+    default?: ConstructorToType<T[key]>
+    required?: boolean
+    type: T[key] | T[key][]
+  }
+}
+
+export type BaseEmits = Record<string, FunctionConstructor | (() => Func)>
+
+export type DefineEmits<T extends BaseEmits> = {
+  [key in keyof T]: {
+    default?: FuncConstructorToType<T[key]>
+    required?: boolean
+    type: T[key] | T[key][]
+  }
+}
+
+/** 获取必填key */
+type GetRequiredKeys<
+  T extends
+    | DefineProps<{
+        [key: string]: Constructors | (() => unknown)
+      }>
+    | undefined
+> = {
+  [K in keyof T]: T[K] extends { required: true } ? K : never
+}[keyof T]
+
+/** 解析必传属性和非必传属性 */
+export type RequiredKeys<
+  P extends BaseProps,
+  Props extends DefineProps<P> | undefined
+> = Partial<Omit<P, GetRequiredKeys<Props>>> &
+  Omit<P, keyof Omit<P, GetRequiredKeys<Props>>>
+
+export type FuncConstructorToType<C> = C extends FunctionConstructor
+  ? Func
+  : C extends () => infer U
+    ? U extends Func
+      ? U
+      : never
+    : never
+
+// TODO: 不会限制不存在的属性可能是因为IntrinsicAttributes为any
+export type CustomElementComponent<
+  P extends BaseProps,
+  E,
+  O extends string,
+  Props extends DefineProps<P> | undefined
+  // S,
+  // Shadow
+> = (
+  props: {
+    [key in keyof RequiredKeys<P, Props>]: ConstructorToType<
+      RequiredKeys<P, Props>[key]
+    >
+  } & Partial<
+    {
+      [key in keyof E as `on-${string & key}`]: FuncConstructorToType<E[key]>
+    } & Record<O, string> & {
+        expose: Ref<Exposed | null>
+        ref: Ref<BaseElement | null>
+      }
+  >,
+  children: ChildType[]
+) => BaseElement
 
 /** 保留键 */
 export const reservedKeys = ['ref', 'expose']
@@ -18,6 +129,9 @@ export const isReservedKey = (key: string): key is ReservedKey =>
 export type CustomElementOptions = {
   extends: HTMLElementTag | null
   shadow: boolean
+  __context__: {
+    component: CustomElementComponent<any, any, any, any>
+  }
 }
 
 /** 记录自定义web组件名 */
@@ -66,7 +180,7 @@ export type ChildType = string | Node | Ref<unknown> | Reactive<unknown[]>
 const isXJElement = <T extends Element = Element>(
   el: any
 ): el is XJ.Element<T> => {
-  return '__stopEffects__' in el && '__startEffects__' in el
+  return STOP_EFFECTS in el && START_EFFECTS in el
 }
 
 const oldAppendChild = Element.prototype.appendChild
@@ -74,9 +188,9 @@ const oldAppendChild = Element.prototype.appendChild
 Element.prototype.appendChild = function <T extends Node>(node: T): T {
   const _ret = oldAppendChild.call(this, node)
   if (isXJElement(node)) {
-    node.__startEffects__()
+    node[START_EFFECTS]()
   }
-  return _ret
+  return _ret as T
 }
 
 export const _createElement = (
@@ -162,7 +276,7 @@ export const _createElement = (
   const textNodeEffects = new Set<() => void>()
   const textNodeEffectsStops = new Set<StopFn>()
 
-  el.__stopEffects__ = () => {
+  el[STOP_EFFECTS] = () => {
     if (isStop) return
     isStop = true
     EffectStops.forEach((stop) => stop())
@@ -173,12 +287,12 @@ export const _createElement = (
 
     childNodes.forEach((child) => {
       if (isXJElement(child)) {
-        child.__stopEffects__()
+        child[STOP_EFFECTS]()
       }
     })
   }
 
-  el.__startEffects__ = () => {
+  el[START_EFFECTS] = () => {
     if (!isStop) return
     isStop = false
 
@@ -250,7 +364,7 @@ export const _createElement = (
 
     childNodes.forEach((child) => {
       if (isXJElement(child)) {
-        child.__startEffects__()
+        child[START_EFFECTS]()
       }
     })
   }
@@ -258,7 +372,7 @@ export const _createElement = (
   const elRemove = el.remove.bind(el)
 
   el.remove = () => {
-    el.__stopEffects__()
+    el[START_EFFECTS]()
     elRemove()
   }
 

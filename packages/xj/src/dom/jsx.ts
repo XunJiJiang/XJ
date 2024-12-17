@@ -1,8 +1,11 @@
-import { type ChildType, createElement } from './createElement'
+import {
+  type ChildType,
+  type CustomElementComponent,
+  createElement
+} from './createElement'
 import { isArray } from '@xj-fv/shared'
 import { isRef } from '@/reactive/ref'
 import { isReactive } from '@/reactive/Dependency'
-import { type CustomElementType } from './defineElement'
 
 const isFragment = (tag: unknown): tag is typeof Fragment => tag === Fragment
 
@@ -17,7 +20,7 @@ export const h = (
     | string
     | typeof Fragment
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    | CustomElementType<any, any, any, any>,
+    | CustomElementComponent<any, any, any, any>,
   // TODO: props type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   props?: any,
@@ -36,8 +39,12 @@ export const h = (
   const _children = _flat(children)
 
   if (typeof tag === 'function') {
-    const _events = {}
-    const _props = {}
+    const _events: {
+      [key: string]: EventListener
+    } = {}
+    const _props: {
+      [key: string]: unknown
+    } = {}
 
     for (const key in props) {
       if (key.startsWith('on-')) {

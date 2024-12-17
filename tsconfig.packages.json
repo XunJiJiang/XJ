@@ -1,6 +1,4 @@
 {
-  "include": ["env.d.ts", "src/**/*"],
-  "exclude": ["src/**/__tests__/*", "src/**/*.test.*"],
   "compilerOptions": {
     "composite": true,
     "target": "esnext",
