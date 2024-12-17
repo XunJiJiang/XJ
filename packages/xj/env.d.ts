@@ -1,71 +1,55 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
-// import { Ref } from '@/reactive/ref'
-
-declare const $if: (
-  props: {
-    value: Ref<any>
-  },
-  ...children: XJ.Element[]
-) => any
-declare const $elseif: (
-  props: {
-    value: any
-  },
-  ...children: XJ.Element[]
-) => any
-declare const $else: (
-  props: {
-    [key: string | number | symbol]: never
-  },
-  ...children: XJ.Element[]
-) => any
-declare const $for: (
-  props: {
-    value: any[]
-  },
-  ...children: XJ.Element[]
-) => any
-
-declare namespace JSX {
-  // type Element = string
-  interface IntrinsicElements {
-    [eleName: string]: any
-  }
-
-  // interface IntrinsicAttributes {
-  //   [attrName: string]: any
-  // }
-
-  // interface ElementAttributesProperty {
-  //   $props: {}
-  // }
-
-  // interface ElementClass {
-  //   $props: {}
-  // }
-
-  // interface Element extends XJ.Element<any> {}
-
-  interface ElementChildrenAttribute {
-    children: Element[]
-  }
-}
-
-declare const __jsx: {
-  h: (tag: string, props: any, ...children: any[]) => any
-  Fragment: (props: { children?: any }) => any
-}
+import type { Reactive } from '@/reactive/reactive'
+import type { Ref } from '@/reactive/ref'
+import type { ChildType } from '@/dom/createElement'
 
 type OleElement = Element
 
-declare namespace XJ {
-  const STOP_EFFECTS: unique symbol
-  const START_EFFECTS: unique symbol
-  type STOP_EFFECTS = typeof STOP_EFFECTS
-  type START_EFFECTS = typeof START_EFFECTS
+declare global {
+  const __jsx: {
+    h: (tag: string, props: any, ...children: any[]) => any
+    Fragment: (props: { children?: any }) => any
+  }
 
-  type Element<T extends OleElement = OleElement> = T & {
-    [__action in START_EFFECTS | STOP_EFFECTS]: () => void
+  type OleElement = Element
+
+  namespace XJ {
+    const STOP_EFFECTS: unique symbol
+    const START_EFFECTS: unique symbol
+    type STOP_EFFECTS = typeof STOP_EFFECTS
+    type START_EFFECTS = typeof START_EFFECTS
+
+    type Element<T extends OleElement = OleElement> = T & {
+      [__action in START_EFFECTS | STOP_EFFECTS]: () => void
+    }
+  }
+
+  namespace FunctionLabelComponent {
+    const $if: (props: { children: ChildType[]; value: Ref<any> }) => any
+    const $elseif: (props: { children: ChildType[]; value: Ref<any> }) => any
+    const $else: (props: {
+      [key: string | number | symbol]: key extends 'children'
+        ? ChildType[]
+        : any
+    }) => any
+    const $for: <T>(props: {
+      value: T
+      children: (
+        item: T extends (infer K)[]
+          ? K
+          : T extends Reactive<(infer K)[]>
+            ? K
+            : never,
+        index: number,
+        setKey: (key: string | number | symbol) => void
+      ) => Node | Node[]
+    }) => (Node | Node[])[]
+
+    type $if = typeof $if
+    type $elseif = typeof $elseif
+    type $else = typeof $else
+    type $for = typeof $for
   }
 }
+
+export type { XJ, __jsx, FunctionLabelComponent }

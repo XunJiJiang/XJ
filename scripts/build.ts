@@ -84,8 +84,8 @@ async function buildConfig(
 
   try {
     const oldName = outFileEntry.replace(`${dirName}.d.ts`, 'index.d.ts')
-    const content =
-      `/// <reference path="../../env.d.ts" />\n` + readFileSync(oldName)
+    // `/// <reference path="../../env.d.ts" />\n` +
+    const content = readFileSync(oldName)
     writeFileSync(outFileEntry, content)
     rmSync(oldName)
   } catch (error) {
