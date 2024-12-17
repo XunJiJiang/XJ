@@ -12,10 +12,10 @@
   "scripts": {
     "build": "tsx scripts/build.ts",
     "release": "tsx scripts/release.ts",
-    "lint": "eslint --cache packages",
-    "format": "prettier --write packages",
-    "format-check": "prettier --check packages",
     "test": "vitest",
+    "lint": "eslint --cache",
+    "format": "prettier --write \"{packages,scripts,tests}/**/*.{ts,mjs,json,md}\"",
+    "format-check": "prettier --check \"{packages,scripts,tests}/**/*.{ts,mjs,json,md}\"",
     "test-ui": "vitest --ui",
     "coverage": "vitest run --coverage",
     "link-packages": "lerna link",
