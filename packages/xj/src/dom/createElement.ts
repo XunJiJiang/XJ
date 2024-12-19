@@ -28,7 +28,7 @@ export const $for: FunctionLabelComponent.$for = ({ value, children }) => {
 
   let tempKey: number | string | symbol | null = null
 
-  const createSetKey = (index: number) => {
+  const createSetKey = (/* index: number */) => {
     return (key: string | number | symbol) => {
       newKeys.add(key)
       tempKey = key
@@ -45,7 +45,7 @@ export const $for: FunctionLabelComponent.$for = ({ value, children }) => {
       (value) => {
         value.forEach((item, index) => {
           try {
-            const child = children(item, index, createSetKey(index))
+            const child = children(item, index, createSetKey())
             itemMap.set(tempKey!, child)
             childNodes[index] = child
           } catch (e) {
@@ -69,7 +69,7 @@ export const $for: FunctionLabelComponent.$for = ({ value, children }) => {
     )
   } else if (isArray(value)) {
     value.forEach((item: any, index) => {
-      const child = children(item, index, createSetKey(index))
+      const child = children(item, index, createSetKey())
       childNodes.push(child)
     })
   }
@@ -575,11 +575,16 @@ export const _createElement = (
           if (oldValue && oldValue[index] === child) {
             return
           } else {
-            const newNode = createWatchNode(
-              child,
-              textNodeEffects,
-              textNodeEffectsStops
-            )
+            const newNode = ((child, textNodeEffects, textNodeEffectsStops) => {
+              if (child instanceof Node) {
+                return child
+              }
+              return createWatchNode(
+                child,
+                textNodeEffects,
+                textNodeEffectsStops
+              )
+            })(child, textNodeEffects, textNodeEffectsStops)
             if (childNodes[index]) {
               el.replaceChild(newNode, childNodes[index])
             } else {
@@ -657,9 +662,6 @@ export const createWatchNode = (
       )
     })
     return childEl
-  }
-  if (child instanceof Node) {
-    return child
   }
   return document.createTextNode(String(child))
 }
