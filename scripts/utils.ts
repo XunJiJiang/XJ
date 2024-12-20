@@ -107,10 +107,9 @@ export const packages = ((): Record<
   // }
 })()
 
-export const packageNames = Object.entries(packages).reduce(
-  (acc, [key, value]) => ({ ...acc, [value.packageName]: key }),
-  {}
-)
+export const packageNames = Object.entries(packages).reduce<{
+  [key: string]: keyof typeof packages
+}>((acc, [key, { packageName }]) => ({ ...acc, [packageName]: key }), {})
 
 /**
  *
