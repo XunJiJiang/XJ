@@ -165,8 +165,8 @@ export type RequiredKeys<
   Omit<P, keyof Omit<P, GetRequiredKeys<Props>>>
 
 type Children =
-  | (ChildType | Ref<Exclude<ChildType, Ref<unknown> | Reactive<unknown[]>>>)[]
-  | Reactive<ChildType[]>
+  | (ChildType | Ref<StaticChildType>)[]
+  | Reactive<StaticChildType[]>
 
 export type FuncConstructorToType<C> = C extends FunctionConstructor
   ? Func
@@ -261,8 +261,9 @@ const setAttribute = (el: Element, key: string, value: any) => {
 
 export type ChildType = string | Node | Ref<unknown> | Reactive<unknown[]>
 
-export type RefChildType = Ref<
-  Exclude<ChildType, Ref<unknown> | Reactive<unknown[]>>
+export type StaticChildType = Exclude<
+  ChildType,
+  Ref<unknown> | Reactive<unknown[]>
 >
 
 const isXJElement = <T extends Element = Element>(
@@ -673,7 +674,7 @@ export const _createElement = (
 export const createElement = (
   tag: string,
   props?: { [key: string]: any },
-  children?: ChildType[] | Reactive<ChildType[]>
+  children?: ChildType[] | Reactive<StaticChildType[]>
 ): Element => {
   return _createElement(tag, props, children)
 }
