@@ -19,7 +19,7 @@ const SYMBOL_REF = Symbol('ref')
  * @example
  * ```ts
  * const ref = ref(0)
- * console.log(isRef(ref)) // true
+ * isRef(ref) // true
  * ```
  */
 export const isRef = <T = unknown>(val: unknown): val is Ref<T> => {
@@ -68,9 +68,9 @@ export type Ref<T = any, S = T> = RefImpl<T, S>
  * @example
  * ```ts
  * const ref = ref(0)
- * console.log(ref.value) // 0
+ * ref.value // 0
  * ref.value = 1
- * console.log(ref.value) // 1
+ * ref.value // 1
  * ```
  */
 export const ref: CreateRef = <T>(value: T | null) => {

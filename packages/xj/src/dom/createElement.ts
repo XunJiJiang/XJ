@@ -20,7 +20,7 @@ export const $elseif: FunctionLabelComponent.$elseif = (
 ) => {}
 export const $else: FunctionLabelComponent.$else = (_props, ...children) => {}
 
-// TODO: $for 存在内存泄漏
+// TODO: $for 可能存在内存泄漏
 export const $for: FunctionLabelComponent.$for = ({ value, children }) => {
   const childNodes: (Node | Node[])[] = isReactive(value) ? reactive([]) : []
   const itemMap = new Map<number | string | symbol, Node[] | Node>()
@@ -65,7 +65,7 @@ export const $for: FunctionLabelComponent.$for = ({ value, children }) => {
         childNodes.splice(value.length)
         newKeys.clear()
       },
-      { deep: false, promSync: true }
+      { deep: false, promSync: true, flush: 'pre' }
     )
   } else if (isArray(value)) {
     value.forEach((item: any, index) => {
@@ -164,6 +164,10 @@ export type RequiredKeys<
 > = Partial<Omit<P, GetRequiredKeys<Props>>> &
   Omit<P, keyof Omit<P, GetRequiredKeys<Props>>>
 
+type Children =
+  | (ChildType | Ref<Exclude<ChildType, Ref<unknown> | Reactive<unknown[]>>>)[]
+  | Reactive<ChildType[]>
+
 export type FuncConstructorToType<C> = C extends FunctionConstructor
   ? Func
   : C extends () => infer U
@@ -191,9 +195,11 @@ export type CustomElementComponent<
     } & Record<O, string> & {
         expose: Ref<Exposed | null>
         ref: Ref<BaseElement | null>
+      } & {
+        children: Children
       }
   >,
-  children: ChildType[] | Reactive<ChildType[]>
+  children: Children
 ) => BaseElement
 
 /** 保留键 */
@@ -255,6 +261,10 @@ const setAttribute = (el: Element, key: string, value: any) => {
 
 export type ChildType = string | Node | Ref<unknown> | Reactive<unknown[]>
 
+export type RefChildType = Ref<
+  Exclude<ChildType, Ref<unknown> | Reactive<unknown[]>>
+>
+
 const isXJElement = <T extends Element = Element>(
   el: any
 ): el is XJ.Element<T> => {
@@ -303,7 +313,7 @@ Element.prototype.replaceChild = function <T extends Node>(
 export const _createElement = (
   tag: string,
   props?: { [key: string]: any },
-  children?: ChildType[] | Reactive<ChildType[]>
+  children?: Children
 ): Element => {
   // TODO: 使用模板字符串拼接dom字符串, 使用与否目前没有显著性能差异
   // if (
@@ -333,8 +343,13 @@ export const _createElement = (
   const isCustomEle = isCustomElement(el, tag)
   const component = el as XJ.Element<BaseElement>
 
-  if (isCustomEle && !customElementOption?.shadow) {
+  // FIX: 此处对于 ref 和 reactive 不能解析slot属性, 由于reactive数组在filter后会变为普通数组
+  if (isCustomEle && !customElementOption?.shadow && !isReactive(children)) {
     children = children?.filter((child) => {
+      if (isRef(child)) {
+        return true
+      }
+
       if (child instanceof HTMLElement) {
         if (child.slot) {
           component.$slots[child.slot] = component.$slots[child.slot] || []
@@ -413,7 +428,7 @@ export const _createElement = (
             (value) => {
               setAttribute(el, key, value)
             },
-            { promSync: true }
+            { promSync: true, flush: 'pre' }
           )
           EffectStops.add(stop)
         }
@@ -428,7 +443,7 @@ export const _createElement = (
                   (value) => {
                     el.className = value.join(' ')
                   },
-                  { deep: 1, promSync: true }
+                  { deep: 1, promSync: true, flush: 'pre' }
                 )
                 EffectStops.add(stop)
               }
@@ -439,7 +454,7 @@ export const _createElement = (
                   (value) => {
                     setAttribute(el, key, value)
                   },
-                  { promSync: true }
+                  { promSync: true, flush: 'pre' }
                 )
                 EffectStops.add(stop)
               } else {
@@ -448,7 +463,7 @@ export const _createElement = (
                   (value) => {
                     setAttribute(el, key, value)
                   },
-                  { promSync: true }
+                  { promSync: true, flush: 'pre' }
                 )
                 EffectStops.add(stop)
               }
@@ -459,7 +474,7 @@ export const _createElement = (
               (value) => {
                 setAttribute(el, key, String(value))
               },
-              { promSync: true }
+              { promSync: true, flush: 'pre' }
             )
             EffectStops.add(stop)
           }
@@ -567,43 +582,79 @@ export const _createElement = (
   }
 
   if (isReactive(children)) {
-    const stop = watch(
-      children as Reactive<ChildType[]>,
-      (value) => {
-        const oldValue = el.childNodes
-        value.forEach((child, index) => {
-          if (oldValue && oldValue[index] === child) {
-            return
-          } else {
-            const newNode = ((child, textNodeEffects, textNodeEffectsStops) => {
-              if (child instanceof Node) {
-                return child
-              }
-              return createWatchNode(
+    // BUG: 加入EffectStops的watch会在el.remove时调用, 但此处在el被重新加入时没有再此启动watch
+    EffectStops.add(
+      watch(
+        children,
+        (value) => {
+          const oldValue = el.childNodes
+          value.forEach((child, index) => {
+            if (oldValue && oldValue[index] === child) {
+              return
+            } else {
+              const newNode = ((
                 child,
                 textNodeEffects,
                 textNodeEffectsStops
-              )
-            })(child, textNodeEffects, textNodeEffectsStops)
-            if (childNodes[index]) {
-              el.replaceChild(newNode, childNodes[index])
-            } else {
-              el.appendChild(newNode)
+              ) => {
+                if (child instanceof Node) {
+                  return child
+                }
+                return createWatchNode(
+                  child,
+                  textNodeEffects,
+                  textNodeEffectsStops
+                )
+              })(child, textNodeEffects, textNodeEffectsStops)
+              if (childNodes[index]) {
+                el.replaceChild(newNode, childNodes[index])
+              } else {
+                el.appendChild(newNode)
+              }
+            }
+          })
+          if (value.length < childNodes.length) {
+            for (let i = value.length; i < childNodes.length; i++) {
+              childNodes[i].remove()
             }
           }
-        })
-        if (value.length < childNodes.length) {
-          for (let i = value.length; i < childNodes.length; i++) {
-            childNodes[i].remove()
-          }
-        }
-      },
-      { deep: true, promSync: true }
+        },
+        { deep: false, promSync: true, flush: 'pre' }
+      )
     )
-    EffectStops.add(stop)
   } else {
-    children?.forEach((child) => {
-      if (child instanceof Node) {
+    children?.forEach((child, index) => {
+      if (isRef<ChildType>(child)) {
+        // BUG: 加入EffectStops的watch会在el.remove时调用, 但此处在el被重新加入时没有再此启动watch
+        EffectStops.add(
+          watch(
+            child,
+            (value) => {
+              const oldValue = el.childNodes[index]
+              const newNode = ((
+                child,
+                textNodeEffects,
+                textNodeEffectsStops
+              ) => {
+                if (child instanceof Node) {
+                  return child
+                }
+                return createWatchNode(
+                  child,
+                  textNodeEffects,
+                  textNodeEffectsStops
+                )
+              })(value, textNodeEffects, textNodeEffectsStops)
+              if (oldValue) {
+                el.replaceChild(newNode, oldValue)
+              } else {
+                el.appendChild(newNode)
+              }
+            },
+            { deep: false, promSync: true, flush: 'pre' }
+          )
+        )
+      } else if (child instanceof Node) {
         el.appendChild(child)
       } else {
         const childEl = createWatchNode(
@@ -611,7 +662,6 @@ export const _createElement = (
           textNodeEffects,
           textNodeEffectsStops
         )
-
         el.appendChild(childEl)
       }
     })
@@ -642,7 +692,7 @@ export const createWatchNode = (
           (value) => {
             childEl.nodeValue = String(value)
           },
-          { deep: true, promSync: true }
+          { deep: true, promSync: true, flush: 'pre' }
         )
       )
     })
@@ -657,7 +707,7 @@ export const createWatchNode = (
           (value) => {
             childEl.nodeValue = String(value)
           },
-          { deep: true, promSync: true }
+          { deep: true, promSync: true, flush: 'pre' }
         )
       )
     })

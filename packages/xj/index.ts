@@ -4,9 +4,9 @@ import { onMounted } from './src/hooks/lifecycle/mounted'
 
 import { onUnmounted } from './src/hooks/lifecycle/unmounted'
 
-import { ref, isRef } from './src/reactive/ref'
+import { ref, isRef, type Ref } from './src/reactive/ref'
 
-import { reactive } from './src/reactive/reactive'
+import { reactive, type Reactive } from './src/reactive/reactive'
 
 import { isReactive } from './src/reactive/Dependency'
 
@@ -62,7 +62,9 @@ export type {
   BaseEmits,
   DefineProps,
   CustomElementConfig,
-  CustomElementOptions
+  CustomElementOptions,
+  Ref,
+  Reactive
 }
 
 export {

@@ -17,6 +17,7 @@ import {
   type EffectCallback
 } from './effect'
 import { isArray, isObject } from '@xj-fv/shared'
+import { type Reactive } from './reactive'
 
 /** 无key的依赖key */
 const SYMBOL_EFFECT = Symbol('effect')
@@ -56,12 +57,12 @@ const hasSYMBOL_DEPENDENCY = (
  * @example
  * ```ts
  * const obj = reactive({})
- * console.log(isReactive(obj)) // true
+ * isReactive(obj) // true
  * ```
  */
 export const isReactive = <T extends object = Record<string | symbol, any>>(
   val: unknown
-): val is Dependency<T> => {
+): val is Reactive<T> => {
   return (
     isObject(val) &&
     hasSYMBOL_DEPENDENCY(val) &&
@@ -69,13 +70,15 @@ export const isReactive = <T extends object = Record<string | symbol, any>>(
   )
 }
 
+// FIX: 监视的数组由filter等返回新数组的方法返回的数组为普通数组
+
 /**
  * class Dependency
  * 创建依赖
  * @example
  * ```ts
  * const dep = new Dependency({})
- * console.log(dep.value) // {}
+ * dep.value // {}
  * ```
  */
 class Dependency<T extends object> {

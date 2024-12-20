@@ -513,6 +513,7 @@ export const defineCustomElement = <
 
       // WARN: 由于暂时没有多文档支持, 所以暂时不需要考虑多文档的情况
       clearBeforeMount(this)
+
       // Lifecycle: mounted 调用时机
       runMounted(this)
 
