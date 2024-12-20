@@ -593,20 +593,12 @@ export const _createElement = (
             if (oldValue && oldValue[index] === child) {
               return
             } else {
-              const newNode = ((
-                child,
-                textNodeEffects,
-                textNodeEffectsStops
-              ) => {
+              const newNode = ((child) => {
                 if (child instanceof Node) {
                   return child
                 }
-                return createWatchNode(
-                  child,
-                  textNodeEffects,
-                  textNodeEffectsStops
-                )
-              })(child, textNodeEffects, textNodeEffectsStops)
+                return document.createTextNode(String(child))
+              })(child)
               if (childNodes[index]) {
                 el.replaceChild(newNode, childNodes[index])
               } else {
@@ -625,27 +617,19 @@ export const _createElement = (
     )
   } else {
     children?.forEach((child, index) => {
-      if (isRef<ChildType>(child)) {
+      if (isRef<StaticChildType>(child)) {
         // BUG: 加入EffectStops的watch会在el.remove时调用, 但此处在el被重新加入时没有再此启动watch
         EffectStops.add(
           watch(
             child,
             (value) => {
               const oldValue = el.childNodes[index]
-              const newNode = ((
-                child,
-                textNodeEffects,
-                textNodeEffectsStops
-              ) => {
+              const newNode = ((child) => {
                 if (child instanceof Node) {
                   return child
                 }
-                return createWatchNode(
-                  child,
-                  textNodeEffects,
-                  textNodeEffectsStops
-                )
-              })(value, textNodeEffects, textNodeEffectsStops)
+                return document.createTextNode(String(child))
+              })(value)
               if (oldValue) {
                 el.replaceChild(newNode, oldValue)
               } else {
