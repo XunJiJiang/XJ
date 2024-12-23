@@ -52,6 +52,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
+          tag_name: ${{ github.ref_name }}
           body: |
             Please refer to [CHANGELOG.md](https://github.com/XunJiJiang/XJ/blob/main/CHANGELOG.md) for details.
