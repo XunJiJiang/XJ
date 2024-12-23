@@ -1,5 +1,4 @@
 {
-  "extends": "./tsconfig.packages.json",
   "include": ["packages/shared/env.d.ts", "/packages/shared/src/**/*"],
   "exclude": ["**/__tests__/*", "**/*.test.*"],
   "compilerOptions": {

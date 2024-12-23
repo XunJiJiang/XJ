@@ -63,10 +63,6 @@ interface WatchHandle {
   stop: () => void
 }
 
-type WatchAloneCallback<T> = T extends () => infer R
-  ? WatchCallback<WatchSourceRef<R>, WatchSourceRef<R>>
-  : WatchCallback<WatchSourceRef<T>, WatchSourceRef<T>>
-
 /** 深度遍历响应式值使得effect可以获取深度依赖 */
 const deepTraverse = <T>(value: T, deep: number | true): T => {
   const map = new WeakMap()
@@ -97,23 +93,13 @@ const deepTraverse = <T>(value: T, deep: number | true): T => {
   return _deepTraverse(value, deep)
 }
 
-const isBaseType = (value: any): boolean => {
-  return (
-    value === null ||
-    value === undefined ||
-    typeof value === 'string' ||
-    typeof value === 'number' ||
-    typeof value === 'boolean' ||
-    typeof value === 'symbol' ||
-    typeof value === 'bigint' ||
-    typeof value === 'function'
-  )
-}
+type WatchAloneCallback<T> = T extends () => infer R
+  ? WatchCallback<WatchSourceRef<R>, WatchSourceRef<R>>
+  : WatchCallback<WatchSourceRef<T>, WatchSourceRef<T>>
 
 // TODO: watchForAlone any太多了
 const watchForAlone = <T extends Ref<any> | (() => any) | Reactive<any>>(
   source: T,
-  // TODO: callback 的前两个参数类型推导结果为any
   callback: WatchAloneCallback<T>,
   options: WatchOptions
 ): WatchHandle => {
@@ -127,9 +113,6 @@ const watchForAlone = <T extends Ref<any> | (() => any) | Reactive<any>>(
 
   let isFirst = true
 
-  /** 记录回调计划状态, 如果依赖更新但是值不变, 回调计划状态为不运行 */
-  let callbackPlan = true
-
   options.deep = isReactive(source)
     ? options.deep === false
       ? 1
@@ -139,22 +122,11 @@ const watchForAlone = <T extends Ref<any> | (() => any) | Reactive<any>>(
   return _effect(
     [
       () => {
-        callbackPlan = false
-
         if (isRef<T>(source)) {
-          const _value = source.value
-          if (!(isBaseType(_value) && value.value === _value)) {
-            callbackPlan = true
-            value.value = _value
-          }
+          value.value = source.value
         } else if (typeof source === 'function') {
-          const _value = source()
-          if (!(isBaseType(_value) && value.value === _value)) {
-            callbackPlan = true
-            value.value = _value
-          }
+          value.value = source()
         } else {
-          callbackPlan = true
           value.value = source
         }
 
@@ -173,10 +145,8 @@ const watchForAlone = <T extends Ref<any> | (() => any) | Reactive<any>>(
         }
       },
       (onCleanup) => {
-        if (callbackPlan) {
-          callback(value.value, value.oldValue, onCleanup)
-          value.oldValue = value.value
-        }
+        callback(value.value, value.oldValue, onCleanup)
+        value.oldValue = value.value
       }
     ],
     {
@@ -201,10 +171,6 @@ const watchForArray = <T extends Readonly<MultiWatchSources>>(
 
   let isFirst = true
 
-  // TODO: 实现array的callbackPlan
-  /** 记录回调计划状态, 如果依赖更新但是值不变, 回调计划状态为不运行 */
-  let callbackPlan = true
-
   options.deep = sources.some((source) => isReactive(source))
     ? options.deep === false
       ? 1
@@ -214,8 +180,6 @@ const watchForArray = <T extends Readonly<MultiWatchSources>>(
   return _effect(
     [
       () => {
-        callbackPlan = false
-
         sources.forEach((source, index) => {
           if (isRef(source)) {
             value.value[index] = source.value as WatchSourceRef<T[typeof index]>
@@ -241,12 +205,10 @@ const watchForArray = <T extends Readonly<MultiWatchSources>>(
         }
       },
       (onCleanup) => {
-        if (callbackPlan) {
-          callback(value.value, value.oldValue, onCleanup)
-          value.oldValue = [] as [...WatchSourceRefs<T>]
-          for (const item of value.value) {
-            value.oldValue.push(item)
-          }
+        callback(value.value, value.oldValue, onCleanup)
+        value.oldValue = [] as [...WatchSourceRefs<T>]
+        for (const item of value.value) {
+          value.oldValue.push(item)
         }
       }
     ],

@@ -14,8 +14,6 @@ export {
 
 export { nextTick } from './src/AutoAsyncTask'
 
-export { createId, createIdGenerator } from './src/id'
-
 export { type Func } from './src/types'
 
 export { type HTMLElementTag, HTMLExtends } from './src/HTMLExtends'
