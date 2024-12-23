@@ -1,4 +1,4 @@
-import { type BaseElement } from './BaseElement'
+import BaseElement from './BaseElement'
 
 // 当前实例
 let currentComponent: BaseElement | null = null

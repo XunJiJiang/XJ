@@ -1,4 +1,4 @@
-import type { Func } from './types'
+import { Func } from './types'
 
 const idleTask = (() => {
   if ('requestIdleCallback' in window) {
