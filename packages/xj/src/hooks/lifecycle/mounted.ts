@@ -1,4 +1,4 @@
-import BaseElement from '@/dom/BaseElement'
+import { type BaseElement } from '@/dom/BaseElement'
 import {
   type LifecycleFn,
   type LifecycleCallback,
