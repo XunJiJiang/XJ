@@ -72,18 +72,18 @@ export const effectReturnMap = new WeakMap<EffectCallback, EffectHandleHasRun>()
  * @example
  * ```ts
  * const stop = effect(() => {
- *   // 副作用函数
+ *   console.log('effect')
  *   return () => {
- *     // 清理函数
+ *     console.log('cleanup')
  *   }
  * })
  * // 停止
  * stop()
  *
  * const { pause, resume, stop } = effect(() => {
- *   // 副作用函数
+ *   console.log('effect')
  *   return () => {
- *     // 清理函数
+ *     console.log('cleanup')
  *   }
  * })
  * // 暂停
