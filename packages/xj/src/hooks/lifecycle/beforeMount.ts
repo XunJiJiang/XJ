@@ -1,5 +1,5 @@
 import { getCurrentComponent } from '@/dom/fixComponentIns'
-import { type BaseElement } from '@/dom/BaseElement'
+import BaseElement from '@/dom/BaseElement'
 import {
   type LifecycleFn,
   type LifecycleCallback,

@@ -3,253 +3,25 @@ import { isReactive } from '@/reactive/Dependency'
 import { isRef, Ref } from '@/reactive/ref'
 import { type StopFn } from '@/reactive/effect'
 import { watch } from '@/reactive/watch'
-import { reactive, type Reactive } from '@/reactive/reactive'
-import { type Func, type HTMLElementTag, isArray } from '@xj-fv/shared'
-import { type BaseElement } from './BaseElement'
+import { Reactive } from '@/reactive/reactive'
+import { isArray } from '@xj-fv/shared'
+import BaseElement from './BaseElement'
+import {
+  getCustomElementOption,
+  isCustomElement,
+  isReservedKey
+} from './defineElement'
 
-class SameKey extends Error {
-  constructor(key: string) {
-    super(`x-for: key ${key} is same`)
-  }
-}
-
-export const $if: FunctionLabelComponent.$if = ({ value }, ...children) => {}
-export const $elseif: FunctionLabelComponent.$elseif = (
-  { value },
-  ...children
-) => {}
-export const $else: FunctionLabelComponent.$else = (_props, ...children) => {}
-
-// TODO: $for 可能存在内存泄漏
-export const $for: FunctionLabelComponent.$for = ({ value, children }) => {
-  const childNodes: (Node | Node[])[] = isReactive(value) ? reactive([]) : []
-  const itemMap = new Map<number | string | symbol, Node[] | Node>()
-  const newKeys = new Set<number | string | symbol>()
-
-  let tempKey: number | string | symbol | null = null
-
-  const createSetKey = (/* index: number */) => {
-    return (key: string | number | symbol) => {
-      newKeys.add(key)
-      tempKey = key
-      if (itemMap.has(key)) {
-        throw new SameKey(String(key))
-      }
-    }
-  }
-
-  if (isReactive<any>(value) && isArray<Reactive<any[]>>(value)) {
-    // const stopFn =
-    watch(
-      value,
-      (value) => {
-        value.forEach((item, index) => {
-          try {
-            const child = children(item, index, createSetKey())
-            itemMap.set(tempKey!, child)
-            childNodes[index] = child
-          } catch (e) {
-            if (e instanceof SameKey) {
-              childNodes[index] = itemMap.get(tempKey!)!
-            } else {
-              throw e
-            }
-          }
-        })
-        tempKey = null
-        itemMap.forEach((_value, key) => {
-          if (!newKeys.has(key)) {
-            itemMap.delete(key)
-          }
-        })
-        childNodes.splice(value.length)
-        newKeys.clear()
-      },
-      { deep: false, promSync: true, flush: 'pre' }
-    )
-  } else if (isArray(value)) {
-    value.forEach((item: any, index) => {
-      const child = children(item, index, createSetKey())
-      childNodes.push(child)
-    })
-  }
-
-  return childNodes
-}
-
-// const functionLabels = new Set([$if, $elseif, $else, $for])
-
-export const isIfLabel = (
-  fn: Func
-): fn is FunctionLabelComponent.$if | FunctionLabelComponent.$elseif =>
-  fn === $if || fn === $elseif
-
-export const isElseLabel = (fn: Func): fn is FunctionLabelComponent.$else =>
-  fn === $else
-
-export const isForLabel = (fn: Func): fn is FunctionLabelComponent.$for =>
-  fn === $for
-
-export const STOP_EFFECTS: XJ.STOP_EFFECTS = Symbol(
-  'x-stop-effects'
-) as XJ.STOP_EFFECTS
-
-export const START_EFFECTS: XJ.START_EFFECTS = Symbol(
-  'x-start-effects'
-) as XJ.START_EFFECTS
-
-export type Exposed = Record<string, any>
-
-type Constructors =
-  | StringConstructor
-  | NumberConstructor
-  | BooleanConstructor
-  | ArrayConstructor
-  | ObjectConstructor
-  | FunctionConstructor
-
-export type ConstructorToType<C> = C extends StringConstructor
-  ? string
-  : C extends NumberConstructor
-    ? number
-    : C extends BooleanConstructor
-      ? boolean
-      : C extends ArrayConstructor
-        ? Array<unknown>
-        : C extends ObjectConstructor
-          ? object
-          : C extends FunctionConstructor
-            ? Func
-            : C extends () => Array<infer U>
-              ? U[]
-              : C extends () => infer U
-                ? U
-                : never
-
-export type BaseProps = Record<string, Constructors | (() => unknown)>
-
-export type DefineProps<T extends BaseProps> = {
-  [key in keyof T]: {
-    default?: ConstructorToType<T[key]>
-    required?: boolean
-    type: T[key] | T[key][]
-  }
-}
-
-export type BaseEmits = Record<string, FunctionConstructor | (() => Func)>
-
-export type DefineEmits<T extends BaseEmits> = {
-  [key in keyof T]: {
-    default?: FuncConstructorToType<T[key]>
-    required?: boolean
-    type: T[key] | T[key][]
-  }
-}
-
-/** 获取必填key */
-type GetRequiredKeys<
-  T extends
-    | DefineProps<{
-        [key: string]: Constructors | (() => unknown)
-      }>
-    | undefined
-> = {
-  [K in keyof T]: T[K] extends { required: true } ? K : never
-}[keyof T]
-
-/** 解析必传属性和非必传属性 */
-export type RequiredKeys<
-  P extends BaseProps,
-  Props extends DefineProps<P> | undefined
-> = Partial<Omit<P, GetRequiredKeys<Props>>> &
-  Omit<P, keyof Omit<P, GetRequiredKeys<Props>>>
-
-type Children =
-  | (ChildType | Ref<StaticChildType>)[]
-  | Reactive<StaticChildType[]>
-
-export type FuncConstructorToType<C> = C extends FunctionConstructor
-  ? Func
-  : C extends () => infer U
-    ? U extends Func
-      ? U
-      : never
-    : never
-
-// TODO: 不会限制不存在的属性可能是因为IntrinsicAttributes为any
-export type CustomElementComponent<
-  P extends BaseProps,
-  E,
-  O extends string,
-  Props extends DefineProps<P> | undefined
-  // S,
-  // Shadow
-> = (
-  props: {
-    [key in keyof RequiredKeys<P, Props>]: ConstructorToType<
-      RequiredKeys<P, Props>[key]
-    >
-  } & Partial<
-    {
-      [key in keyof E as `on-${string & key}`]: FuncConstructorToType<E[key]>
-    } & Record<O, string> & {
-        expose: Ref<Exposed | null>
-        ref: Ref<BaseElement | null>
-      } & {
-        children: Children
-      }
-  >,
-  children: Children
-) => BaseElement
-
-/** 保留键 */
-export const reservedKeys = ['ref', 'expose'] as const
-
-type ReservedKey = (typeof reservedKeys)[number]
-
-export const isReservedKey = (key: string): key is ReservedKey =>
-  reservedKeys.includes(key as ReservedKey)
-
-export type CustomElementOptions = {
-  extends: HTMLElementTag | null
-  shadow: boolean
-  __context__: {
-    component: CustomElementComponent<any, any, any, any>
-  }
-}
-
-/** 记录自定义web组件名 */
-const customElementNameMap = new Map<string, CustomElementOptions>()
-
-/** 是否是自定义web组件 */
-export const isCustomElement = (
-  _el: Element,
-  name: string
-): _el is BaseElement => customElementNameMap.has(name)
-
-/** 获取自定义组件的配置 */
-export const getCustomElementOption = (
-  name: string
-): CustomElementOptions | undefined => {
-  return customElementNameMap.get(name)
-}
-
-export const hasCustomElementOption = (name: string): boolean => {
-  return customElementNameMap.has(name)
-}
-
-export const setCustomElementOption = (
-  name: string,
-  opt: CustomElementOptions
-) => {
-  customElementNameMap.set(name, opt)
-}
-
-export const customElementOptionMap = {
-  set: setCustomElementOption,
-  get: getCustomElementOption,
-  has: hasCustomElementOption
-}
+// const eventCheck = /*#__PURE__*/ (
+//   _key: EventHandlers,
+//   value: (e: Event) => void
+// ) => {
+//   if (typeof value !== 'function') {
+//     // console.error(`事件绑定必须是函数, 但得到了 ${typeof value} ${value}`)
+//     return false
+//   }
+//   return true
+// }
 
 const setAttribute = (el: Element, key: string, value: any) => {
   if (value === null || value === undefined) {
@@ -261,15 +33,10 @@ const setAttribute = (el: Element, key: string, value: any) => {
 
 export type ChildType = string | Node | Ref<unknown> | Reactive<unknown[]>
 
-export type StaticChildType = Exclude<
-  ChildType,
-  Ref<unknown> | Reactive<unknown[]>
->
-
 const isXJElement = <T extends Element = Element>(
   el: any
 ): el is XJ.Element<T> => {
-  return STOP_EFFECTS in el && START_EFFECTS in el
+  return '__stopEffects__' in el && '__startEffects__' in el
 }
 
 const oldAppendChild = Element.prototype.appendChild
@@ -277,44 +44,15 @@ const oldAppendChild = Element.prototype.appendChild
 Element.prototype.appendChild = function <T extends Node>(node: T): T {
   const _ret = oldAppendChild.call(this, node)
   if (isXJElement(node)) {
-    node[START_EFFECTS]()
-  }
-  return _ret as T
-}
-
-const oldInsertAfter = Element.prototype.insertAdjacentElement
-
-Element.prototype.insertAdjacentElement = function (
-  position: InsertPosition,
-  element: Element
-): Element | null {
-  const _ret = oldInsertAfter.call(this, position, element)
-  if (isXJElement(element)) {
-    element[START_EFFECTS]()
+    node.__startEffects__()
   }
   return _ret
 }
 
-const oldReplaceChild = Element.prototype.replaceChild
-
-Element.prototype.replaceChild = function <T extends Node>(
-  newChild: Node,
-  oldChild: T
-): T {
-  const _ret = oldReplaceChild.call(this, newChild, oldChild)
-  if (isXJElement(newChild)) {
-    newChild[START_EFFECTS]()
-  }
-  if (isXJElement(oldChild)) {
-    oldChild[STOP_EFFECTS]()
-  }
-  return _ret as T
-}
-
-export const _createElement = (
+export const createElement = (
   tag: string,
   props?: { [key: string]: any },
-  children?: Children
+  children?: ChildType[]
 ): Element => {
   // TODO: 使用模板字符串拼接dom字符串, 使用与否目前没有显著性能差异
   // if (
@@ -333,7 +71,7 @@ export const _createElement = (
   //   `
   // }
 
-  const customElementOption = customElementOptionMap.get(tag)
+  const customElementOption = getCustomElementOption(tag)
 
   const el = (() => {
     if (customElementOption?.extends) {
@@ -344,13 +82,8 @@ export const _createElement = (
   const isCustomEle = isCustomElement(el, tag)
   const component = el as XJ.Element<BaseElement>
 
-  // FIX: 此处对于 ref 和 reactive 不能解析slot属性, 由于reactive数组在filter后会变为普通数组
-  if (isCustomEle && !customElementOption?.shadow && !isReactive(children)) {
+  if (isCustomEle && !customElementOption?.shadow) {
     children = children?.filter((child) => {
-      if (isRef(child)) {
-        return true
-      }
-
       if (child instanceof HTMLElement) {
         if (child.slot) {
           component.$slots[child.slot] = component.$slots[child.slot] || []
@@ -399,7 +132,7 @@ export const _createElement = (
   const textNodeEffects = new Set<() => void>()
   const textNodeEffectsStops = new Set<StopFn>()
 
-  el[STOP_EFFECTS] = () => {
+  el.__stopEffects__ = () => {
     if (isStop) return
     isStop = true
     EffectStops.forEach((stop) => stop())
@@ -410,12 +143,12 @@ export const _createElement = (
 
     childNodes.forEach((child) => {
       if (isXJElement(child)) {
-        child[STOP_EFFECTS]()
+        child.__stopEffects__()
       }
     })
   }
 
-  el[START_EFFECTS] = () => {
+  el.__startEffects__ = () => {
     if (!isStop) return
     isStop = false
 
@@ -429,7 +162,7 @@ export const _createElement = (
             (value) => {
               setAttribute(el, key, value)
             },
-            { promSync: true, flush: 'pre' }
+            { promSync: true }
           )
           EffectStops.add(stop)
         }
@@ -444,7 +177,7 @@ export const _createElement = (
                   (value) => {
                     el.className = value.join(' ')
                   },
-                  { deep: 1, promSync: true, flush: 'pre' }
+                  { deep: 1, promSync: true }
                 )
                 EffectStops.add(stop)
               }
@@ -455,7 +188,7 @@ export const _createElement = (
                   (value) => {
                     setAttribute(el, key, value)
                   },
-                  { promSync: true, flush: 'pre' }
+                  { promSync: true }
                 )
                 EffectStops.add(stop)
               } else {
@@ -464,7 +197,7 @@ export const _createElement = (
                   (value) => {
                     setAttribute(el, key, value)
                   },
-                  { promSync: true, flush: 'pre' }
+                  { promSync: true }
                 )
                 EffectStops.add(stop)
               }
@@ -475,7 +208,7 @@ export const _createElement = (
               (value) => {
                 setAttribute(el, key, String(value))
               },
-              { promSync: true, flush: 'pre' }
+              { promSync: true }
             )
             EffectStops.add(stop)
           }
@@ -487,7 +220,7 @@ export const _createElement = (
 
     childNodes.forEach((child) => {
       if (isXJElement(child)) {
-        child[START_EFFECTS]()
+        child.__startEffects__()
       }
     })
   }
@@ -495,7 +228,7 @@ export const _createElement = (
   const elRemove = el.remove.bind(el)
 
   el.remove = () => {
-    el[STOP_EFFECTS]()
+    el.__stopEffects__()
     elRemove()
   }
 
@@ -521,7 +254,7 @@ export const _createElement = (
     else {
       // 对于自定义元素
       if (isCustomEle) {
-        // 对于保留属性 TODO: 目前是ref,expose。有修改需求时，需要修改此处
+        // 对于保留属性 TODO: 目前是ref和expose。有修改需求时，需要修改此处
         if (isReservedKey(key)) {
           if (isRef(props[key])) {
             if (key === 'ref') {
@@ -548,7 +281,7 @@ export const _createElement = (
       }
       // 对于原生元素
       else {
-        // 对于保留属性 TODO: 目前是ref,expose。有修改需求时，需要修改此处
+        // 对于保留属性 TODO: 目前是ref和expose。有修改需求时，需要修改此处
         if (isReservedKey(key)) {
           if (isRef(props[key])) {
             if (key === 'ref') {
@@ -582,85 +315,21 @@ export const _createElement = (
     }
   }
 
-  if (isReactive(children)) {
-    // BUG: 加入EffectStops的watch会在el.remove时调用, 但此处在el被重新加入时没有再此启动watch
-    EffectStops.add(
-      watch(
-        children,
-        (value) => {
-          const oldValue = el.childNodes
-          value.forEach((child, index) => {
-            if (oldValue && oldValue[index] === child) {
-              return
-            } else {
-              const newNode = ((child) => {
-                if (child instanceof Node) {
-                  return child
-                }
-                return document.createTextNode(String(child))
-              })(child)
-              if (childNodes[index]) {
-                el.replaceChild(newNode, childNodes[index])
-              } else {
-                el.appendChild(newNode)
-              }
-            }
-          })
-          if (value.length < childNodes.length) {
-            for (let i = value.length; i < childNodes.length; i++) {
-              childNodes[i].remove()
-            }
-          }
-        },
-        { deep: false, promSync: true, flush: 'pre' }
+  children?.forEach((child) => {
+    if (child instanceof Node) {
+      el.appendChild(child)
+    } else {
+      const childEl = createWatchNode(
+        child,
+        textNodeEffects,
+        textNodeEffectsStops
       )
-    )
-  } else {
-    children?.forEach((child, index) => {
-      if (isRef<StaticChildType>(child)) {
-        // BUG: 加入EffectStops的watch会在el.remove时调用, 但此处在el被重新加入时没有再此启动watch
-        EffectStops.add(
-          watch(
-            child,
-            (value) => {
-              const oldValue = el.childNodes[index]
-              const newNode = ((child) => {
-                if (child instanceof Node) {
-                  return child
-                }
-                return document.createTextNode(String(child))
-              })(value)
-              if (oldValue) {
-                el.replaceChild(newNode, oldValue)
-              } else {
-                el.appendChild(newNode)
-              }
-            },
-            { deep: false, promSync: true, flush: 'pre' }
-          )
-        )
-      } else if (child instanceof Node) {
-        el.appendChild(child)
-      } else {
-        const childEl = createWatchNode(
-          child,
-          textNodeEffects,
-          textNodeEffectsStops
-        )
-        el.appendChild(childEl)
-      }
-    })
-  }
+
+      el.appendChild(childEl)
+    }
+  })
 
   return el
-}
-
-export const createElement = (
-  tag: string,
-  props?: { [key: string]: any },
-  children?: ChildType[] | Reactive<StaticChildType[]>
-): Element => {
-  return _createElement(tag, props, children)
 }
 
 export const createWatchNode = (
@@ -677,7 +346,7 @@ export const createWatchNode = (
           (value) => {
             childEl.nodeValue = String(value)
           },
-          { deep: true, promSync: true, flush: 'pre' }
+          { deep: true, promSync: true }
         )
       )
     })
@@ -692,7 +361,7 @@ export const createWatchNode = (
           (value) => {
             childEl.nodeValue = String(value)
           },
-          { deep: true, promSync: true, flush: 'pre' }
+          { deep: true, promSync: true }
         )
       )
     })

@@ -1,6 +1,6 @@
 {
   "name": "@xj-fv/shared",
-  "version": "0.0.7",
+  "version": "0.0.6",
   "description": "Shared utilities and components for the XJ library",
   "main": "index.ts",
   "module": "dist/index.esm-bundler.js",
@@ -16,18 +16,12 @@
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/types/shared.d.ts",
-        "node": "./index.mjs",
-        "default": "./dist/shared.esm-bundler.js"
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/index.esm-bundler.js"
       },
       "require": {
-        "types": "./dist/types/shared.d.ts",
-        "node": {
-          "production": "./dist/shared.cjs.prod.js",
-          "development": "./dist/shared.cjs.js",
-          "default": "./index.js"
-        },
-        "default": "./index.js"
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/index.cjs.js"
       }
     }
   },
