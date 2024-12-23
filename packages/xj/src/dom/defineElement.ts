@@ -8,22 +8,35 @@
  */
 
 import {
-  Func,
+  type Func,
   hasOwn,
   isArray,
   notNull,
-  type HTMLElementTag,
-  HTMLExtends
+  HTMLExtends,
+  createIdGenerator
 } from '@xj-fv/shared'
-import BaseElement, { SYMBOL_INIT } from './BaseElement'
+import { SYMBOL_INIT, type BaseElement } from './BaseElement'
 import { setComponentIns } from './fixComponentIns'
 import { startSetupRunning } from '@/hooks/lifecycle/verifySetup'
 import { clearBeforeMount, runBeforeMount } from '@/hooks/lifecycle/beforeMount'
 import { clearMounted, runMounted } from '@/hooks/lifecycle/mounted'
+import {
+  _createElement,
+  customElementOptionMap,
+  isReservedKey,
+  type Exposed,
+  type BaseProps,
+  type DefineProps,
+  type BaseEmits,
+  type DefineEmits,
+  type RequiredKeys,
+  type CustomElementOptions,
+  type CustomElementComponent,
+  type FuncConstructorToType,
+  type ConstructorToType
+} from './createElement'
 
 type Shared = Record<string, any>
-
-type Exposed = Record<string, any>
 
 // export type DefineProps<T extends Record<string, any>> = T
 
@@ -46,60 +59,6 @@ export interface EleAttributeChangedCallback {
     },
     context: { data: Shared }
   ): void
-}
-
-export type BaseProps = Record<string, Constructors | (() => unknown)>
-
-type Constructors =
-  | StringConstructor
-  | NumberConstructor
-  | BooleanConstructor
-  | ArrayConstructor
-  | ObjectConstructor
-  | FunctionConstructor
-
-type ConstructorToType<C> = C extends StringConstructor
-  ? string
-  : C extends NumberConstructor
-    ? number
-    : C extends BooleanConstructor
-      ? boolean
-      : C extends ArrayConstructor
-        ? Array<unknown>
-        : C extends ObjectConstructor
-          ? object
-          : C extends FunctionConstructor
-            ? Func
-            : C extends () => Array<infer U>
-              ? U[]
-              : C extends () => infer U
-                ? U
-                : never
-
-type DefineProps<T extends BaseProps> = {
-  [key in keyof T]: {
-    default?: ConstructorToType<T[key]>
-    required?: boolean
-    type: T[key] | T[key][]
-  }
-}
-
-export type BaseEmits = Record<string, FunctionConstructor | (() => Func)>
-
-type FuncConstructorToType<C> = C extends FunctionConstructor
-  ? Func
-  : C extends () => infer U
-    ? U extends Func
-      ? U
-      : never
-    : never
-
-type DefineEmits<T extends BaseEmits> = {
-  [key in keyof T]: {
-    default?: FuncConstructorToType<T[key]>
-    required?: boolean
-    type: T[key] | T[key][]
-  }
 }
 
 // type BaseSlots = Record<string, () => Node[] | Node> | string[]
@@ -128,6 +87,7 @@ export type CustomElementConfig<
   S = [],
   Shadow extends boolean = false
 > = {
+  name?: string
   style?:
     | string
     | ((
@@ -160,6 +120,49 @@ export type CustomElementConfig<
   attributeChanged?: EleAttributeChangedCallback
 }
 
+// TODO: TEST START
+type P = {
+  a: StringConstructor
+  b: NumberConstructor
+  c: BooleanConstructor
+  d: () => Array<string>
+}
+
+type Props = {
+  a: {
+    required: true
+    type: StringConstructor
+  }
+  b: {
+    required: true
+    type: NumberConstructor
+  }
+  c: {
+    default: false
+    type: BooleanConstructor
+  }
+  d: {
+    required: true
+    type: () => Array<string>
+  }
+}
+
+const test: {
+  [key in keyof RequiredKeys<P, Props>]: ConstructorToType<
+    RequiredKeys<P, Props>[key]
+  >
+} = {
+  a: '',
+  b: 1,
+  // c: false,
+  d: ['a']
+}
+
+console.log(test)
+// TODO: TEST END
+
+const idGenerator = createIdGenerator('xj-custom-element')
+
 const customElementRegistry = window.customElements
 
 const checkPropsEmit = <T extends BaseProps, K extends BaseEmits>(
@@ -182,7 +185,7 @@ const checkObservedAttributes = (attrs: string[]) => {
       /*@__PURE__*/ console.error(
         `observedAttributes: ${attr} 不能以 on- 开头。`
       )
-    } else if (reservedKeys.includes(attr)) {
+    } else if (isReservedKey(attr)) {
       /*@__PURE__*/ console.error(`observedAttributes: ${attr} 为保留键。`)
     }
   }
@@ -195,35 +198,6 @@ const isObservableAttr = <T extends string>(
   return observedAttributes.includes(key as T)
 }
 
-/** 保留键 */
-const reservedKeys = ['ref', 'expose']
-
-type ReservedKey = 'ref' | 'expose'
-
-export const isReservedKey = (key: string): key is ReservedKey =>
-  reservedKeys.includes(key)
-
-export type CustomElementOptions = {
-  extends: HTMLElementTag | null
-  shadow: boolean
-}
-
-/** 记录自定义web组件名 */
-const customElementNameMap = new Map<string, CustomElementOptions>()
-
-/** 是否是自定义web组件 */
-export const isCustomElement = (
-  _el: Element,
-  name: string
-): _el is BaseElement => customElementNameMap.has(name)
-
-/** 获取自定义组件的配置 */
-export const getCustomElementOption = (
-  name: string
-): CustomElementOptions | undefined => {
-  return customElementNameMap.get(name)
-}
-
 // TODO: B extends string
 export const defineCustomElement = <
   P extends BaseProps,
@@ -232,10 +206,13 @@ export const defineCustomElement = <
   S = [],
   Shadow extends boolean = false
 >(
-  name: string,
-  {
+  config: CustomElementConfig<P, E, O, S, Shadow>,
+  options?: CustomElementOptions
+): CustomElementComponent<P, E, O, typeof props> => {
+  const {
+    name = idGenerator(),
     style,
-    shadow = false as Shadow,
+    shadow = false,
     setup,
     props,
     emits,
@@ -246,12 +223,12 @@ export const defineCustomElement = <
     adopted,
     attributeChanged
     // ...rest
-  }: CustomElementConfig<P, E, O, S, Shadow>,
-  options?: CustomElementOptions
-): (() => void) => {
-  if (customElementNameMap.has(name.toLowerCase())) {
+  } = config
+
+  if (customElementOptionMap.has(name.toLowerCase())) {
     /*@__PURE__*/ console.error(`自定义组件 ${name} 重复定义。`)
-    return () => {}
+    return customElementOptionMap.get(name.toLowerCase())?.__context__
+      .component as CustomElementComponent<P, E, O, typeof props>
   }
 
   const _shadow = shadow
@@ -328,7 +305,7 @@ export const defineCustomElement = <
               [key in O]: string
             }
           )[name] = value
-        } else if (reservedKeys.includes(name)) {
+        } else if (isReservedKey(name)) {
           continue
         }
         // else {
@@ -536,6 +513,7 @@ export const defineCustomElement = <
 
       // WARN: 由于暂时没有多文档支持, 所以暂时不需要考虑多文档的情况
       clearBeforeMount(this)
+
       // Lifecycle: mounted 调用时机
       runMounted(this)
 
@@ -620,13 +598,24 @@ export const defineCustomElement = <
     }
   }
 
-  return () => {
-    customElementNameMap.set(name.toLowerCase(), {
-      extends: options?.extends ?? null,
-      shadow: _shadow
-    })
-    customElementRegistry.define(name, Ele, {
-      extends: options?.extends ?? undefined
-    })
+  const component: CustomElementComponent<P, E, O, typeof props> = (
+    props,
+    children
+  ) => {
+    return _createElement(name.toLowerCase(), props, children) as BaseElement
   }
+
+  customElementOptionMap.set(name.toLowerCase(), {
+    extends: options?.extends ?? null,
+    shadow: _shadow,
+    __context__: {
+      component
+    }
+  })
+
+  customElementRegistry.define(name, Ele, {
+    extends: options?.extends ?? undefined
+  })
+
+  return component
 }
