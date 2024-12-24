@@ -31,6 +31,8 @@ import {
   type CustomElementOptions
 } from './src/dom/createElement'
 
+import { createApp } from './src/dom/createApp'
+
 import type { BaseElement } from './src/dom/BaseElement'
 
 import { __jsx, h, Fragment } from './src/dom/jsx'
@@ -52,7 +54,8 @@ export default {
   $for,
   __jsx,
   h,
-  Fragment
+  Fragment,
+  createApp
 }
 
 export type {
@@ -84,5 +87,6 @@ export {
   $for,
   __jsx,
   h,
-  Fragment
+  Fragment,
+  createApp
 }
