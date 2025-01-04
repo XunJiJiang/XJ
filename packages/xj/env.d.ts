@@ -18,6 +18,14 @@ declare global {
     const START_EFFECTS: unique symbol
     type STOP_EFFECTS = typeof STOP_EFFECTS
     type START_EFFECTS = typeof START_EFFECTS
+    const SYMBOL_$IF: unique symbol
+    const SYMBOL_$ELSEIF: unique symbol
+    const SYMBOL_$ELSE: unique symbol
+    const SYMBOL_$FOR: unique symbol
+    type SYMBOL_$IF = typeof SYMBOL_$IF
+    type SYMBOL_$ELSEIF = typeof SYMBOL_$ELSEIF
+    type SYMBOL_$ELSE = typeof SYMBOL_$ELSE
+    type SYMBOL_$FOR = typeof SYMBOL_$FOR
 
     type Element<T extends OleElement = OleElement> = T & {
       [__action in START_EFFECTS | STOP_EFFECTS]: () => void
@@ -43,7 +51,11 @@ declare global {
         index: number,
         setKey: (key: string | number | symbol) => void
       ) => Node | Node[]
-    }) => (Node | Node[])[]
+    }) => {
+      [sym in XJ.START_EFFECTS | XJ.STOP_EFFECTS]: () => void
+    } & {
+      [sym in XJ.SYMBOL_$FOR]: true
+    } & (() => Reactive<Node[]>)
 
     type $if = typeof $if
     type $elseif = typeof $elseif

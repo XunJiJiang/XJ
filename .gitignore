@@ -22,6 +22,8 @@ logs/
 npm-publish.*
 publish.*
 
+scripts/npmrc.ts
+
 # Ignore lock files
 npm-debug.log*
 yarn-debug.log*
@@ -74,3 +76,4 @@ dist-ssr
 **/test-*
 **/tests-*
 **/test
+

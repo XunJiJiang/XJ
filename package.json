@@ -28,7 +28,8 @@
     "xj-clean": "./scripts/clean.js"
   },
   "keywords": [
-    "xj"
+    "xj",
+    "xj-fv"
   ],
   "bugs": {
     "url": "https://github.com/XunJiJiang/XJ/issues"

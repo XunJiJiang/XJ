@@ -2,12 +2,13 @@ import {
   type ChildType,
   type CustomElementComponent,
   type StaticChildType,
+  type DeepChildList,
   createElement,
   isIfLabel,
   isElseLabel,
-  isForLabel
+  isForLabel,
+  _flat
 } from './createElement'
-import { isArray } from '@xj-fv/shared'
 import { isRef, type Ref } from '@/reactive/ref'
 import { isReactive } from '@/reactive/Dependency'
 import { type Reactive } from '@/reactive/reactive'
@@ -17,8 +18,6 @@ const isFragment = (tag: unknown): tag is typeof Fragment => tag === Fragment
 export const Fragment = Symbol.for('x-fgt') as unknown as {
   __isFragment: true
 }
-
-type DeepChildList = (ChildType | Ref<StaticChildType> | DeepChildList)[]
 
 export const h = (
   tag:
@@ -39,7 +38,11 @@ export const h = (
     | ChildType
     | ((item: unknown, index: number) => ChildType | ChildType[]),
   ...children: DeepChildList
-): Node | Node[] | (Node | Node[])[] => {
+):
+  | Node
+  | Node[]
+  | (Node | Node[])[]
+  | ReturnType<FunctionLabelComponent.$for> => {
   let _tag: string | typeof Fragment
 
   if (
@@ -48,23 +51,6 @@ export const h = (
     !isReactive(firstChild)
   )
     children = [firstChild, ...children]
-
-  function _flat(array: DeepChildList): ChildType[] {
-    let hasDeepArr = false
-    const _array = array.reduce<DeepChildList>((arr, item) => {
-      if (isRef(item) || isReactive(item)) {
-        arr.push(item)
-      } else if (isArray(item)) {
-        arr.push(...item)
-        hasDeepArr = true
-      } else {
-        arr.push(item)
-      }
-      return arr
-    }, [])
-    if (hasDeepArr) return _flat(_array)
-    return _array as ChildType[]
-  }
 
   const _children = _flat(children)
 
@@ -120,7 +106,9 @@ export const h = (
       props ?? {},
       isReactive(firstChild)
         ? (firstChild as unknown as Reactive<ChildType[]>)
-        : _children
+        : typeof firstChild === 'function'
+          ? ([firstChild] as ChildType[])
+          : _children
     )
   }
 }
