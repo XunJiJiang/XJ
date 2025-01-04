@@ -8,10 +8,15 @@ import { type Func, type HTMLElementTag, isArray } from '@xj-fv/shared'
 import { type BaseElement } from './BaseElement'
 
 class SameKey extends Error {
-  constructor(key: string) {
-    super(`x-for: key ${key} is same`)
+  constructor(key: string | symbol | number) {
+    super(`x-for: key ${String(key)} is same`)
   }
 }
+
+const SYMBOL_$IF: XJ.SYMBOL_$IF = Symbol('$if') as XJ.SYMBOL_$IF
+const SYMBOL_$ELSEIF: XJ.SYMBOL_$ELSEIF = Symbol('$elseif') as XJ.SYMBOL_$ELSEIF
+const SYMBOL_$ELSE: XJ.SYMBOL_$ELSE = Symbol('$else') as XJ.SYMBOL_$ELSE
+const SYMBOL_$FOR: XJ.SYMBOL_$FOR = Symbol('$for') as XJ.SYMBOL_$FOR
 
 export const $if: FunctionLabelComponent.$if = ({ value }, ...children) => {}
 export const $elseif: FunctionLabelComponent.$elseif = (
@@ -33,40 +38,68 @@ export const $for: FunctionLabelComponent.$for = ({ value, children }) => {
       newKeys.add(key)
       tempKey = key
       if (itemMap.has(key)) {
-        throw new SameKey(String(key))
+        throw new SameKey(key)
       }
     }
   }
 
+  const callback: ReturnType<FunctionLabelComponent.$for> = () => {
+    return childNodes
+  }
+  callback[SYMBOL_$FOR] = true
+  callback[START_EFFECTS] = () => {
+    childNodes.forEach((child) => {
+      if (isXJElement(child)) {
+        child[START_EFFECTS]()
+      }
+    })
+  }
+  callback[STOP_EFFECTS] = () => {
+    childNodes.forEach((child) => {
+      if (isXJElement(child)) {
+        child[STOP_EFFECTS]()
+      }
+    })
+  }
   if (isReactive<any>(value) && isArray<Reactive<any[]>>(value)) {
-    // const stopFn =
-    watch(
-      value,
-      (value) => {
-        value.forEach((item, index) => {
-          try {
-            const child = children(item, index, createSetKey())
-            itemMap.set(tempKey!, child)
-            childNodes[index] = child
-          } catch (e) {
-            if (e instanceof SameKey) {
-              childNodes[index] = itemMap.get(tempKey!)!
-            } else {
-              throw e
+    const oldStart = callback[START_EFFECTS]
+    let stopFn: StopFn | null = null
+    callback[START_EFFECTS] = () => {
+      oldStart()
+      stopFn = watch(
+        value,
+        (value) => {
+          value.forEach((item, index) => {
+            try {
+              const child = children(item, index, createSetKey())
+              itemMap.set(tempKey!, child)
+              childNodes[index] = child
+            } catch (e) {
+              if (e instanceof SameKey) {
+                childNodes[index] = itemMap.get(tempKey!)!
+              } else {
+                throw e
+              }
             }
-          }
-        })
-        tempKey = null
-        itemMap.forEach((_value, key) => {
-          if (!newKeys.has(key)) {
-            itemMap.delete(key)
-          }
-        })
-        childNodes.splice(value.length)
-        newKeys.clear()
-      },
-      { deep: false, promSync: true, flush: 'pre' }
-    )
+          })
+          tempKey = null
+          itemMap.forEach((_value, key) => {
+            if (!newKeys.has(key)) {
+              itemMap.delete(key)
+            }
+          })
+          childNodes.splice(value.length)
+          newKeys.clear()
+        },
+        { deep: false, promSync: true, flush: 'pre' }
+      )
+    }
+    const oldStop = callback[STOP_EFFECTS]
+    callback[STOP_EFFECTS] = () => {
+      oldStop()
+      stopFn?.()
+      stopFn = null
+    }
   } else if (isArray(value)) {
     value.forEach((item: any, index) => {
       const child = children(item, index, createSetKey())
@@ -74,7 +107,7 @@ export const $for: FunctionLabelComponent.$for = ({ value, children }) => {
     })
   }
 
-  return childNodes
+  return callback
 }
 
 // const functionLabels = new Set([$if, $elseif, $else, $for])
@@ -210,6 +243,25 @@ type ReservedKey = (typeof reservedKeys)[number]
 export const isReservedKey = (key: string): key is ReservedKey =>
   reservedKeys.includes(key as ReservedKey)
 
+export type DeepChildList = (ChildType | Ref<StaticChildType> | DeepChildList)[]
+
+export function _flat(array: DeepChildList): ChildType[] {
+  let hasDeepArr = false
+  const _array = array.reduce<DeepChildList>((arr, item) => {
+    if (isRef(item) || isReactive(item)) {
+      arr.push(item)
+    } else if (isArray(item)) {
+      arr.push(...item)
+      hasDeepArr = true
+    } else {
+      arr.push(item)
+    }
+    return arr
+  }, [])
+  if (hasDeepArr) return _flat(_array)
+  return _array as ChildType[]
+}
+
 export type CustomElementOptions = {
   extends: HTMLElementTag | null
   shadow: boolean
@@ -259,7 +311,12 @@ const setAttribute = (el: Element, key: string, value: any) => {
   }
 }
 
-export type ChildType = string | Node | Ref<unknown> | Reactive<unknown[]>
+export type ChildType =
+  | string
+  | Node
+  | Ref<unknown>
+  | Reactive<unknown[]>
+  | ReturnType<FunctionLabelComponent.$for>
 
 export type StaticChildType = Exclude<
   ChildType,
@@ -396,6 +453,16 @@ export const _createElement = (
   let isStop = true
   const childNodes = isCustomEle ? el.$root?.childNodes : el.childNodes
 
+  /** 用于保存 if else for 函数 */
+  const functionLabels = new Set<
+    ReturnType<
+      // | typeof FunctionLabelComponent.$if
+      // | typeof FunctionLabelComponent.$elseif
+      // | typeof FunctionLabelComponent.$else
+      typeof FunctionLabelComponent.$for
+    >
+  >()
+
   const textNodeEffects = new Set<() => void>()
   const textNodeEffectsStops = new Set<StopFn>()
 
@@ -412,6 +479,10 @@ export const _createElement = (
       if (isXJElement(child)) {
         child[STOP_EFFECTS]()
       }
+    })
+
+    functionLabels.forEach((fn) => {
+      fn[STOP_EFFECTS]()
     })
   }
 
@@ -489,6 +560,10 @@ export const _createElement = (
       if (isXJElement(child)) {
         child[START_EFFECTS]()
       }
+    })
+
+    functionLabels.forEach((fn) => {
+      fn[START_EFFECTS]()
     })
   }
 
@@ -582,42 +657,54 @@ export const _createElement = (
     }
   }
 
-  if (isReactive(children)) {
-    // BUG: 加入EffectStops的watch会在el.remove时调用, 但此处在el被重新加入时没有再此启动watch
-    EffectStops.add(
-      watch(
-        children,
-        (value) => {
-          const oldValue = el.childNodes
-          value.forEach((child, index) => {
-            if (oldValue && oldValue[index] === child) {
-              return
-            } else {
-              const newNode = ((child) => {
-                if (child instanceof Node) {
-                  return child
-                }
-                return document.createTextNode(String(child))
-              })(child)
-              if (childNodes[index]) {
-                el.replaceChild(newNode, childNodes[index])
+  const childrenHandlerOnIsReactive = (children: Reactive<Children>) => {
+    const oldStart = el[START_EFFECTS]
+    // const oldStop = el[STOP_EFFECTS]
+    el[START_EFFECTS] = () => {
+      EffectStops.add(
+        watch(
+          children,
+          (value) => {
+            const oldValue = el.childNodes
+            value.forEach((child, index) => {
+              if (oldValue && oldValue[index] === child) {
+                return
               } else {
-                el.appendChild(newNode)
+                const newNode = ((child) => {
+                  if (child instanceof Node) {
+                    return child
+                  }
+                  return document.createTextNode(String(child))
+                })(child)
+                if (childNodes[index]) {
+                  el.replaceChild(newNode, childNodes[index])
+                } else {
+                  el.appendChild(newNode)
+                }
+              }
+            })
+            if (value.length < childNodes.length) {
+              for (let i = value.length; i < childNodes.length; i++) {
+                childNodes[i].remove()
               }
             }
-          })
-          if (value.length < childNodes.length) {
-            for (let i = value.length; i < childNodes.length; i++) {
-              childNodes[i].remove()
-            }
-          }
-        },
-        { deep: false, promSync: true, flush: 'pre' }
+          },
+          { deep: false, promSync: true, flush: 'pre' }
+        )
       )
-    )
+      oldStart()
+    }
+  }
+
+  if (isReactive(children)) {
+    // BUG: 加入EffectStops的watch会在el.remove时调用, 但此处在el被重新加入时没有再此启动watch
+    childrenHandlerOnIsReactive(children)
   } else {
     children?.forEach((child, index) => {
-      if (isRef<StaticChildType>(child)) {
+      if (typeof child === 'function' && child[SYMBOL_$FOR]) {
+        functionLabels.add(child)
+        childrenHandlerOnIsReactive(child())
+      } else if (isRef<StaticChildType>(child)) {
         // BUG: 加入EffectStops的watch会在el.remove时调用, 但此处在el被重新加入时没有再此启动watch
         EffectStops.add(
           watch(
