@@ -671,8 +671,8 @@ export const _createElement = (
               setAttribute(el, key, props[key])
             }
           }
-        } else if (!isRef(props[key])) {
-          setAttribute(el, key, props[key])
+        } else if (!isRef(props[key]) && props[key] !== false) {
+          setAttribute(el, key, props[key] === true ? '' : props[key])
         }
       }
     }
