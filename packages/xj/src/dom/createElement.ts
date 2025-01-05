@@ -27,8 +27,10 @@ export const $else: FunctionLabelComponent.$else = (_props, ...children) => {}
 
 // TODO: $for 可能存在内存泄漏
 export const $for: FunctionLabelComponent.$for = ({ value, children }) => {
-  const childNodes: (Node | Node[])[] = isReactive(value) ? reactive([]) : []
-  const itemMap = new Map<number | string | symbol, Node[] | Node>()
+  const childNodes: Reactive<Node[]> | Node[] = isReactive(value)
+    ? reactive([])
+    : []
+  const itemMap = new Map<number | string | symbol, Node>()
   const newKeys = new Set<number | string | symbol>()
 
   let tempKey: number | string | symbol | null = null
@@ -539,6 +541,21 @@ export const _createElement = (
                 )
                 EffectStops.add(stop)
               }
+            } else if (isArray<(string | Ref<string>)[]>(props[key])) {
+              props[key].forEach((item) => {
+                if (isRef(item)) {
+                  const stop = watch(
+                    item,
+                    (value, oldValue) => {
+                      if (oldValue && !props[key].includes(oldValue))
+                        el.classList.remove(oldValue)
+                      if (value) el.classList.add(value)
+                    },
+                    { promSync: true, flush: 'pre' }
+                  )
+                  EffectStops.add(stop)
+                }
+              })
             }
           } else if (isRef(props[key])) {
             const stop = watch(
@@ -641,9 +658,13 @@ export const _createElement = (
         }
         // 对于class
         else if (key === 'class') {
-          if (isArray<string[]>(props[key])) {
+          if (isArray<(string | Ref<string>)[]>(props[key])) {
             if (!isReactive(props[key])) {
-              el.className = props[key].join(' ')
+              props[key].forEach((item) => {
+                if (!isRef(item)) {
+                  el.classList.add(item)
+                }
+              })
             }
           } else {
             if (!isRef(props[key])) {
@@ -657,7 +678,16 @@ export const _createElement = (
     }
   }
 
-  const childrenHandlerOnIsReactive = (children: Reactive<Children>) => {
+  const childrenHandlerOnIsReactive = (
+    children: Reactive<Children> | Node[]
+  ) => {
+    if (!isReactive(children)) {
+      children.forEach((child) => {
+        el.appendChild(child)
+      })
+      return
+    }
+
     const oldStart = el[START_EFFECTS]
     // const oldStop = el[STOP_EFFECTS]
     el[START_EFFECTS] = () => {

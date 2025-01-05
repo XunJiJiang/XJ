@@ -50,12 +50,12 @@ declare global {
             : never,
         index: number,
         setKey: (key: string | number | symbol) => void
-      ) => Node | Node[]
+      ) => Node
     }) => {
       [sym in XJ.START_EFFECTS | XJ.STOP_EFFECTS]: () => void
     } & {
       [sym in XJ.SYMBOL_$FOR]: true
-    } & (() => Reactive<Node[]>)
+    } & (() => Reactive<Node[]> | Node[])
 
     type $if = typeof $if
     type $elseif = typeof $elseif
