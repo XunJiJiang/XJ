@@ -83,7 +83,7 @@ type DefineSlot<T, Shadow extends boolean> = Shadow extends false
 export type CustomElementConfig<
   P extends BaseProps,
   E extends BaseEmits,
-  O extends string,
+  O extends string[] | void = void,
   S = [],
   Shadow extends boolean = false
 > = {
@@ -93,13 +93,13 @@ export type CustomElementConfig<
     | ((
         props: {
           [key in keyof P]: ConstructorToType<P[key]>
-        } & Record<O, string>
+        } & Record<O extends string[] ? O[number] : never, string>
       ) => string)
   shadow?: Shadow
   setup: (
     props: {
       [key in keyof P]: ConstructorToType<P[key]>
-    } & Record<O, string>,
+    } & Record<O extends string[] ? O[number] : never, string>,
     context: {
       expose: (methods: Exposed) => void
       share: (methods: Shared) => void
@@ -113,7 +113,7 @@ export type CustomElementConfig<
   props?: DefineProps<P>
   emits?: DefineEmits<E>
   slots?: DefineSlots<S>
-  observedAttributes?: O[]
+  observedAttributes?: O
   connected?: EleCallback
   disconnected?: EleCallback
   adopted?: EleCallback
@@ -191,18 +191,18 @@ const checkObservedAttributes = (attrs: string[]) => {
   }
 }
 
-const isObservableAttr = <T extends string>(
+const isObservableAttr = <T extends string[]>(
   key: string,
-  observedAttributes: T[]
-): key is T => {
-  return observedAttributes.includes(key as T)
+  observedAttributes: T
+): key is T extends string[] ? T[number] : never => {
+  return observedAttributes.includes(key as T[number])
 }
 
 // TODO: B extends string
 export const defineCustomElement = <
   P extends BaseProps,
   E extends BaseEmits,
-  O extends string,
+  O extends string[] | void = void,
   S = [],
   Shadow extends boolean = false
 >(
@@ -253,7 +253,7 @@ export const defineCustomElement = <
       BaseElement<
         {
           [key in keyof P]: ConstructorToType<P[key]>
-        } & Record<O, string>
+        } & Record<O extends string[] ? O[number] : never, string>
       >
   {
     constructor() {
@@ -262,7 +262,7 @@ export const defineCustomElement = <
       const { restore } = setComponentIns(this)
       this.$sharedData = {}
 
-      const _observedAttributes = observedAttributes || []
+      const _observedAttributes = (observedAttributes || []) as string[]
 
       // TODO: 在解决 "不使用Shadow Root的元素绑定数据时外部会获取到子组件内容" 的问题前, 强制使用Shadow Root
       if (_shadow && !options?.extends) {
@@ -284,7 +284,7 @@ export const defineCustomElement = <
     }
 
     get obAttr() {
-      return observedAttributes || []
+      return (observedAttributes || []) as string[]
     }
 
     connectedCallback() {
@@ -293,18 +293,14 @@ export const defineCustomElement = <
 
       const shadow = this.$root
 
-      const _observedAttributes = observedAttributes || []
+      const _observedAttributes = (observedAttributes || []) as string[]
 
       // 获取observedAttributes定义属性的键值
       const attrs = Array.from(this.attributes)
       for (const attr of attrs) {
         const { name, value } = attr
-        if (isObservableAttr<O>(name, _observedAttributes)) {
-          ;(
-            this.$props as {
-              [key in O]: string
-            }
-          )[name] = value
+        if (isObservableAttr<string[]>(name, _observedAttributes)) {
+          ;(this.$props as Record<string, string>)[name] = value
         } else if (isReservedKey(name)) {
           continue
         }
@@ -326,7 +322,10 @@ export const defineCustomElement = <
           } else if (!required && 'default' in _props[key] && notNull(def)) {
             this.$props[key] = def as ({
               [key in keyof P]: ConstructorToType<P[key]>
-            } & { [key in O]: string })[Extract<keyof P, string>]
+            } & Record<O extends string[] ? O[number] : never, string>)[Extract<
+              keyof P,
+              string
+            >]
           } else {
             /*@__PURE__*/ console.error(
               (() => {
@@ -542,13 +541,15 @@ export const defineCustomElement = <
       restore()
     }
 
-    attributeChangedCallback(name: O, oldValue: string, newValue: string) {
+    attributeChangedCallback(
+      name: O extends string[] ? O[number] : never,
+      oldValue: string,
+      newValue: string
+    ) {
       const { restore } = setComponentIns(this)
-      ;(
-        this.$props as {
-          [key in O]: string
-        }
-      )[name] = newValue
+      ;(this.$props as Record<O extends string[] ? O[number] : never, string>)[
+        name
+      ] = newValue
       attributeChanged?.call(
         this,
         { name, oldValue, newValue },
@@ -561,7 +562,7 @@ export const defineCustomElement = <
 
     $props = {} as {
       [key in keyof P]: ConstructorToType<P[key]>
-    } & Record<O, string>
+    } & Record<O extends string[] ? O[number] : never, string>
 
     $sharedData: Record<string, any> = {}
 
@@ -587,7 +588,7 @@ export const defineCustomElement = <
 
       this.$props = {} as {
         [key in keyof P]: ConstructorToType<P[key]>
-      } & Record<O, string>
+      } & Record<O extends string[] ? O[number] : never, string>
       this.$sharedData = {}
 
       this.$exposedData = {}

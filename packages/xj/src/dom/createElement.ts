@@ -215,8 +215,8 @@ export type FuncConstructorToType<C> = C extends FunctionConstructor
 export type CustomElementComponent<
   P extends BaseProps,
   E,
-  O extends string,
-  Props extends DefineProps<P> | undefined
+  O extends string[] | void = void,
+  Props extends DefineProps<P> | undefined = undefined
   // S,
   // Shadow
 > = (
@@ -227,12 +227,12 @@ export type CustomElementComponent<
   } & Partial<
     {
       [key in keyof E as `on-${string & key}`]: FuncConstructorToType<E[key]>
-    } & Record<O, string> & {
-        expose: Ref<Exposed | null>
-        ref: Ref<BaseElement | null>
-      } & {
-        children: Children
-      }
+    } & {
+      expose: Ref<Exposed | null>
+      ref: Ref<BaseElement | null>
+    } & {
+      children: Children
+    } & Record<O extends string[] ? O[number] : never, any>
   >,
   children: Children
 ) => BaseElement
