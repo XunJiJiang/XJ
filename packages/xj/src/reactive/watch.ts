@@ -225,6 +225,9 @@ const watchForArray = <T extends Readonly<MultiWatchSources>>(
             value.value[index] = source as WatchSourceRef<T[typeof index]>
           }
 
+          // TODO: 此处假设每次都需要更新, 但并非正确, 只用于确保回调可以被运行. 正确的做法应该是判断是否有变化
+          callbackPlan = true
+
           if (
             typeof value.value[index] === 'object' &&
             value.value[index] !== null &&
@@ -237,6 +240,7 @@ const watchForArray = <T extends Readonly<MultiWatchSources>>(
 
         if (isFirst) {
           value.oldValue = value.value
+          callbackPlan = true
           isFirst = false
         }
       },
