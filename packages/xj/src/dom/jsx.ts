@@ -71,7 +71,7 @@ export const h = (
           item: unknown,
           index: number,
           setKey: (key: string | number | symbol) => void
-        ) => Node | Node[]
+        ) => Node
       })
     }
 

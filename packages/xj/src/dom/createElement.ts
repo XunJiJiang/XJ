@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { isReactive } from '@/reactive/Dependency'
-import { isRef, Ref } from '@/reactive/ref'
+import { isRef, ref, type Ref } from '@/reactive/ref'
 import { type StopFn } from '@/reactive/effect'
 import { watch } from '@/reactive/watch'
 import { reactive, type Reactive } from '@/reactive/reactive'
@@ -27,9 +27,8 @@ export const $else: FunctionLabelComponent.$else = (_props, ...children) => {}
 
 // TODO: $for 可能存在内存泄漏
 export const $for: FunctionLabelComponent.$for = ({ value, children }) => {
-  const childNodes: Reactive<Node[]> | Node[] = isReactive(value)
-    ? reactive([])
-    : []
+  const childNodes: Reactive<Node[]> | Node[] =
+    isReactive(value) || ref(value) ? reactive([]) : []
   const itemMap = new Map<number | string | symbol, Node>()
   const newKeys = new Set<number | string | symbol>()
 
@@ -48,7 +47,7 @@ export const $for: FunctionLabelComponent.$for = ({ value, children }) => {
   const callback: ReturnType<FunctionLabelComponent.$for> = () => {
     return childNodes
   }
-  callback[SYMBOL_$FOR] = true
+  callback[SYMBOL_$FOR] = true as const
   callback[START_EFFECTS] = () => {
     childNodes.forEach((child) => {
       if (isXJElement(child)) {
@@ -63,13 +62,17 @@ export const $for: FunctionLabelComponent.$for = ({ value, children }) => {
       }
     })
   }
-  if (isReactive<any>(value) && isArray<Reactive<any[]>>(value)) {
+
+  if (
+    (isReactive<any>(value) && isArray<Reactive<any[]>>(value)) ||
+    (isRef<any[]>(value) && isArray(value.value))
+  ) {
     const oldStart = callback[START_EFFECTS]
     let stopFn: StopFn | null = null
     callback[START_EFFECTS] = () => {
       oldStart()
       stopFn = watch(
-        value,
+        value as Reactive<any[]>,
         (value) => {
           value.forEach((item, index) => {
             try {
@@ -111,8 +114,6 @@ export const $for: FunctionLabelComponent.$for = ({ value, children }) => {
 
   return callback
 }
-
-// const functionLabels = new Set([$if, $elseif, $else, $for])
 
 export const isIfLabel = (
   fn: Func
@@ -453,7 +454,6 @@ export const _createElement = (
   const EffectStops: Set<StopFn> = new Set()
 
   let isStop = true
-  const childNodes = isCustomEle ? el.$root?.childNodes : el.childNodes
 
   /** 用于保存 if else for 函数 */
   const functionLabels = new Set<
@@ -476,6 +476,8 @@ export const _createElement = (
 
     textNodeEffectsStops.forEach((stop) => stop())
     textNodeEffectsStops.clear()
+
+    const childNodes = isCustomEle ? el.$root?.childNodes : el.childNodes
 
     childNodes.forEach((child) => {
       if (isXJElement(child)) {
@@ -572,6 +574,8 @@ export const _createElement = (
     }
 
     textNodeEffects.forEach((effect) => effect())
+
+    const childNodes = isCustomEle ? el.$root?.childNodes : el.childNodes
 
     childNodes.forEach((child) => {
       if (isXJElement(child)) {
@@ -695,7 +699,10 @@ export const _createElement = (
         watch(
           children,
           (value) => {
-            const oldValue = el.childNodes
+            const childNodes = isCustomEle
+              ? el.$root?.childNodes
+              : el.childNodes
+            const oldValue = childNodes
             value.forEach((child, index) => {
               if (oldValue && oldValue[index] === child) {
                 return
@@ -714,7 +721,7 @@ export const _createElement = (
               }
             })
             if (value.length < childNodes.length) {
-              for (let i = value.length; i < childNodes.length; i++) {
+              for (let i = childNodes.length - 1; i >= value.length; i--) {
                 childNodes[i].remove()
               }
             }

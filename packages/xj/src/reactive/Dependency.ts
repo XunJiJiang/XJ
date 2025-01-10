@@ -122,7 +122,8 @@ class Dependency<T extends object> {
           this._isProxy.push(key)
         }
 
-        this.collect(key)
+        if (isArray(target)) this.collect()
+        else this.collect(key)
 
         return _ret
       },
@@ -158,7 +159,7 @@ class Dependency<T extends object> {
         if (isArray(target)) this.distribute(cb)
         else this.distribute(cb, key)
 
-        if (_ret) this.remove(key)
+        if (_ret && !isArray(target)) this.remove(key)
 
         return _ret
       }
@@ -208,6 +209,9 @@ class Dependency<T extends object> {
   }
 
   private remove(key: string | symbol) {
+    if (key === SYMBOL_EFFECT) {
+      return
+    }
     this._deps.delete(key)
   }
 
