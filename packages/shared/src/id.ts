@@ -1,10 +1,24 @@
-export const createIdGenerator = <S extends string>(
+export function createIdGenerator<S extends string>(
   prefix: S
-): (() => `__${S}::${number}::__`) => {
+): () => `__${S}::${number}::__`
+export function createIdGenerator<S extends string>(
+  prefix: S,
+  useDashOnly: true
+): () => `--${S}--${number}--`
+export function createIdGenerator<S extends string>(
+  prefix: S,
+  useDashOnly?: boolean
+) {
   let id = 0
 
-  return () => {
-    return `__${prefix}::${id++}::__`
+  if (useDashOnly) {
+    return () => {
+      return `--${prefix}--${id++}--`
+    }
+  } else {
+    return () => {
+      return `__${prefix}::${id++}::__`
+    }
   }
 }
 

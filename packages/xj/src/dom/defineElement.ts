@@ -161,7 +161,7 @@ const test: {
 console.log(test)
 // TODO: TEST END
 
-const idGenerator = createIdGenerator('xj-custom-element')
+const idGenerator = createIdGenerator('xj-custom-element', true)
 
 const customElementRegistry = window.customElements
 
