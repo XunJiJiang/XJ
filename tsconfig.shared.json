@@ -1,12 +1,11 @@
 {
   "extends": "./tsconfig.packages.json",
-  "include": ["packages/shared/env.d.ts", "/packages/shared/src/**/*"],
-  "exclude": ["**/__tests__/*", "**/*.test.*"],
+  "include": ["packages/shared/env.d.ts", "packages/shared/src/**/*"],
+  "exclude": ["**/__tests__/*", "**/*.test.*", "**/*/temp/*"],
   "compilerOptions": {
     /* alias */
-    "baseUrl": "./packages/shared/src",
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["./packages/shared/src/*"]
     }
   }
 }

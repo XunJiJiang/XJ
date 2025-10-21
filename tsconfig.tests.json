@@ -1,8 +1,8 @@
 {
   "include": ["**/__tests__/*", "**/*.test.*"],
+  "exclude": ["**/*/temp/*"],
   "compilerOptions": {
     /* alias */
-    "baseUrl": "./",
     "paths": {
       "@test/*": ["./tests/*"]
     }
