@@ -9,7 +9,7 @@ async function main() {
   await upgradeVersion()
 }
 
-main()
+// main()
 
 export async function upgradeVersion() {
   log.blue('upgrade version started...')
@@ -44,6 +44,11 @@ async function selectVersionType(version: Version) {
       name: next,
       value: next
     }
+  })
+
+  choices.push({
+    name: version,
+    value: version
   })
 
   const nextVersion = await select({

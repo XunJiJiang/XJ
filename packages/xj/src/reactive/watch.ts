@@ -155,6 +155,10 @@ const watchForAlone = <T extends Ref<any> | (() => any) | Reactive<any>>(
           }
         } else {
           callbackPlan = true
+          // TODO: 用于给初始为空的数组创建依赖, 正确做法是在Dep中创建依赖
+          if (isArray(source)) {
+            source.length
+          }
           value.value = source
         }
 
