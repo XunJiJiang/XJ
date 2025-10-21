@@ -3,15 +3,15 @@
   "version": "0.0.7",
   "description": "XJ library",
   "main": "index.ts",
-  "module": "dist/index.esm-bundler.js",
-  "types": "dist/types/index.d.ts",
+  "module": "./dist/xj.esm-bundler.js",
+  "types": "./dist/types/xj.d.ts",
   "files": [
     "dist",
     "src",
     "!src/**/*.test.ts",
-    "index.ts",
+    "index.*",
     "env.d.ts",
-    "license"
+    "LICENSE"
   ],
   "exports": {
     ".": {

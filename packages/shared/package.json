@@ -3,15 +3,15 @@
   "version": "0.0.7",
   "description": "Shared utilities and components for the XJ library",
   "main": "index.ts",
-  "module": "dist/index.esm-bundler.js",
-  "types": "dist/types/index.d.ts",
+  "module": "./dist/shared.esm-bundler.js",
+  "types": "./dist/types/shared.d.ts",
   "files": [
     "dist",
     "src",
     "!src/**/*.test.ts",
-    "index.ts",
+    "index.*",
     "env.d.ts",
-    "license"
+    "LICENSE"
   ],
   "exports": {
     ".": {
