@@ -342,6 +342,19 @@ Element.prototype.appendChild = function <T extends Node>(node: T): T {
   return _ret as T
 }
 
+const oldInsertBefore = Element.prototype.insertBefore
+
+Element.prototype.insertBefore = function <T extends Node>(
+  newChild: T,
+  refChild: Node | null
+): T {
+  const _ret = oldInsertBefore.call(this, newChild, refChild)
+  if (isXJElement(newChild)) {
+    newChild[START_EFFECTS]()
+  }
+  return _ret as T
+}
+
 const oldInsertAfter = Element.prototype.insertAdjacentElement
 
 Element.prototype.insertAdjacentElement = function (
@@ -369,6 +382,15 @@ Element.prototype.replaceChild = function <T extends Node>(
     oldChild[STOP_EFFECTS]()
   }
   return _ret as T
+}
+
+const oldRemove = Element.prototype.remove
+
+Element.prototype.remove = function () {
+  if (isXJElement(this)) {
+    this[STOP_EFFECTS]()
+  }
+  oldRemove.call(this)
 }
 
 export const _createElement = (
@@ -702,26 +724,61 @@ export const _createElement = (
             const childNodes = isCustomEle
               ? el.$root?.childNodes
               : el.childNodes
-            const oldValue = childNodes
-            value.forEach((child, index) => {
-              if (oldValue && oldValue[index] === child) {
-                return
-              } else {
+            const oldValue = [...childNodes]
+            const len = value.length
+            for (let i = 0; i < len; i++) {
+              const child = value[i]
+              const oldChild = oldValue[i]
+              if (oldChild === child) continue
+              else {
                 const newNode = ((child) => {
                   if (child instanceof Node) {
                     return child
                   }
                   return document.createTextNode(String(child))
                 })(child)
-                if (childNodes[index]) {
-                  el.replaceChild(newNode, childNodes[index])
+                if (childNodes[i]) {
+                  el.replaceChild(newNode, childNodes[i])
                 } else {
                   el.appendChild(newNode)
                 }
+                // if (oldChild) {
+                //   const nextOldChild = oldValue[i + 1]
+                //   const nextNewChild = value[i + 1]
+                //   if (nextOldChild) {
+                //     if (newNode === nextOldChild) {
+                //       oldChild.remove()
+                //     } else if (nextNewChild === nextOldChild) {
+                //       el.replaceChild(newNode, oldChild)
+                //     } else {
+                //       el.insertBefore(newNode, nextOldChild)
+                //     }
+                //   }
+                // } else {
+                //   el.appendChild(newNode)
+                // }
               }
-            })
-            if (value.length < childNodes.length) {
-              for (let i = childNodes.length - 1; i >= value.length; i--) {
+            }
+            // value.forEach((child, index) => {
+            //   if (oldValue[index] === child) {
+            //     return
+            //   } else {
+            //     const newNode = ((child) => {
+            //       if (child instanceof Node) {
+            //         return child
+            //       }
+            //       return document.createTextNode(String(child))
+            //     })(child)
+            //     if (childNodes[index]) {
+            //       el.replaceChild(newNode, childNodes[index])
+            //     } else {
+            //       el.appendChild(newNode)
+            //     }
+            //   }
+            // })
+            const oldLen = oldValue.length
+            if (len < oldLen) {
+              for (let i = oldLen - 1; i >= value.length; i--) {
                 childNodes[i].remove()
               }
             }

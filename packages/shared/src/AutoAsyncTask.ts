@@ -97,10 +97,12 @@ export class AutoAsyncTask {
   }
 }
 
+// TODO: 此处promSync为true时, 性能测试 benchmark 05_swap1k 未通过
+// checkElementContainsText pierce/tbody>tr:nth-of-type(999)>td:nth-of-type(1) failed. expected 2, but was 1000
 export const nextTick = (
   task: Func,
   key?: Func | null,
-  { promSync = false } = {}
+  { promSync = true } = {}
 ) => {
   if (promSync) AutoAsyncTask.addSyncTask(task, key)
   else AutoAsyncTask.addTask(task, key)

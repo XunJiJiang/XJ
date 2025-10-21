@@ -113,20 +113,23 @@ export const packageNames = Object.entries(packages).reduce<{
 
 /**
  *
- * @param packageNames 包的文件夹名
+ * @param pkgDirs 包的文件夹名
  */
-export function createNpmPublishScript(
-  packageNames: (keyof typeof packages)[]
-) {
+export function createNpmPublishScript(pkgDirs: (keyof typeof packages)[]) {
   const content =
     `$ErrorActionPreference = "Stop"\n` +
+    `$env:NPM_TOKEN = "${require('./npmrc').NPM_TOKEN}"\n` +
+    `$rootNpmrcPath = "$PSScriptRoot/../.npmrc"\n` +
+    `$backupNpmrcPath = "$rootNpmrcPath.bak"\n` +
+    `Copy-Item -Path $rootNpmrcPath -Destination $backupNpmrcPath\n` +
+    `Set-Content -Path $npmrcPath -Value "//registry.npmjs.org/:_authToken=$env:NPM_TOKEN"\n` +
     `Write-Host "Logging in to npm..."\n` +
     `npm login\n` +
     `Write-Host "Building all packages..."\n` +
-    `npx tsx ${__dirname}/scripts/build.ts${packageNames.reduce((p, c) => {
+    `npx tsx ${__dirname}/scripts/build.ts${pkgDirs.reduce((p, c) => {
       return `${p} --p=${c}`
     }, '')}\n` +
-    packageNames.reduce((p, c) => {
+    pkgDirs.reduce((p, c) => {
       return (
         p +
         `Write-Host "Publishing ${packages[c].packageName}..."\n` +
@@ -139,6 +142,7 @@ export function createNpmPublishScript(
         `Pop-Location\n`
       )
     }, '') +
+    `Move-Item -Path $backupNpmrcPath -Destination $rootNpmrcPath -Force\n` +
     `Write-Host "All packages have been published successfully!"\n`
 
   return toTemp('publish.ps1', content)

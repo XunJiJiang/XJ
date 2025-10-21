@@ -7,22 +7,28 @@ import {
   createNpmPublishScript,
   log
 } from './utils'
+import { upgradeVersion } from './upgradeVersion'
 import { resolve } from 'node:path'
 import { writeFileSync } from 'node:fs'
 import { execSync } from 'node:child_process'
 import { confirm } from '@inquirer/prompts'
-import { upgradeVersion } from './upgradeVersion'
 
 async function main() {
-  try {
-    await confirmPr()
-  } catch (error) {
-    log(log.super.red('x'), `release abort.\n`, error)
-    return
-  }
-
   log.blue('release started...')
   try {
+    try {
+      await upgradeVersion()
+    } catch (error) {
+      log(log.super.red('x'), `upgrade version failed.\n`, error)
+    }
+
+    try {
+      await confirmPr()
+    } catch (error) {
+      log(log.super.red('x'), `release abort.\n`, error)
+      return
+    }
+
     const packagePaths = Object.keys(packages)
 
     for (const pkgPath of packagePaths) {
@@ -43,8 +49,6 @@ async function main() {
       for (const pkgPath of packagePaths) {
         await restorePackage(pkgPath)
       }
-
-      await upgradeVersion()
     }
   } catch (error) {
     log(log.super.red('x'), `release failed:\n`, error)
@@ -90,7 +94,8 @@ async function restorePackage(pkgPath: keyof typeof packages) {
 /** 这是一个提示，要求发布前先进行pr */
 async function confirmPr() {
   const answer = await confirm({
-    message: 'Have you created a PR before publishing?'
+    message:
+      '现在请提交 PR 请求, 然后继续发布 npm 和包版本增量. 发布完成后确认.'
   })
 
   if (!answer) {
